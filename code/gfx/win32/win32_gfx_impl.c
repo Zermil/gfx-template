@@ -1,0 +1,395 @@
+// @Note: All of the if (!error) {} in here are actually not that bad, if you're using an okay compile
+// with some optimizations it generates reasonable code, so there's nothing to worry about (also globals are useful).
+// I'm very sorry if your CS professors lied to you, they lied to me too.
+
+global b32 win32_gfx_is_init = 0;
+global Win32_Window win32_windows[GFX_MAX_WINDOW_COUNT] = {0};
+global Win32_Window *win32_window_free = 0;
+
+// @Note: +1 and -1 here are for the case when window is a null-pointer
+#define win32_window_from_opaque(w) (win32_windows + ((u64)(w) - 1))
+#define win32_opaque_from_window(w) ((GFX_Window *)(((w) - win32_windows) + 1))
+#define win32_window_is_valid(w) ((u64)(w) >= 1 && (u64)(w) < ARRAY_SIZE(win32_windows))
+
+// @ToDo: Mechanism for spawning 'child' windows?
+//
+// Currently when creating another window, when main window
+// exists, the child window is _not_ destroyed, this is bad.
+
+internal b32 gfx_is_init(void)
+{
+    return(win32_gfx_is_init);
+}
+
+internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg) {
+        case WM_CLOSE: {
+            Win32_Window *w = gfx_win32_window_from_handle(handle);
+            w->wants_to_quit = 1;
+            PostQuitMessage(0);
+        } break;
+        
+        case WM_GETMINMAXINFO: {
+            MINMAXINFO *info = (MINMAXINFO *) lParam;
+            info->ptMinTrackSize.x = GFX_WIN32_MIN_WIDTH;
+            info->ptMinTrackSize.y = GFX_WIN32_MIN_HEIGHT;
+        } break;
+        
+        case WM_SIZE:
+        case WM_PAINT: {
+            GFX_Window *gfx_window = gfx_win32_opaque_from_handle(handle);
+            Win32_Window *win32_window = win32_window_from_opaque(gfx_window);
+            
+            if (win32_window->render) {
+                PAINTSTRUCT ps = {0};
+                BeginPaint(handle, &ps);
+                win32_window->render(gfx_window, win32_window->render_data);
+                EndPaint(handle, &ps);
+            }
+        } break;
+    }
+    
+    return(DefWindowProc(handle, msg, wParam, lParam));
+}
+
+internal b32 gfx_init(void)
+{
+    b32 error = 0;
+    if (win32_gfx_is_init) {
+        er_push("GFX layer is already initialized");
+        error = 1;
+    }
+    
+    if (!error) {        
+        WNDCLASSEX window_class = {0};
+        window_class.cbSize = sizeof(WNDCLASSEX);
+        window_class.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
+        window_class.lpfnWndProc = gfx_win32_window_proc;
+        window_class.hInstance = os_win32_get_instance();
+        window_class.lpszClassName = GFX_WIN32_WINDOW_CLASS_NAME;
+        window_class.hCursor = LoadCursor(0, IDC_ARROW);
+        
+        ATOM atom = RegisterClassEx(&window_class);
+        if (atom == 0) {
+            er_push("Failed to register class");
+            error = 1;
+        }
+    }
+    
+    if (!error) {
+        win32_window_free = win32_windows;
+        Win32_Window *last = win32_windows + ARRAY_SIZE(win32_windows) - 1;
+        for (Win32_Window *slot = win32_window_free; slot < last; ++slot) {
+            slot->next = (slot + 1);
+        }
+    }
+    
+    if (!error) {
+        win32_gfx_is_init = 1;
+    }
+    
+    b32 result = !error;
+    return(result);
+}
+
+internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
+{
+    b32 error = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+        error = 1;
+    }
+    
+    Win32_Window *slot = 0;
+    if (!error) {
+        slot = win32_window_free;
+        if (slot == 0) {
+            er_push("Run out of free windows to allocate from");
+            error = 1;
+        }
+    }
+    
+    HWND handle = 0;
+    if (!error) {
+        DWORD win32_window_style = WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX;
+        HINSTANCE instance = os_win32_get_instance();
+        
+        RECT client_area = {0};
+        client_area.top = 0;
+        client_area.left = 0;
+        client_area.bottom = height;
+        client_area.right = width;
+        AdjustWindowRectEx(&client_area, win32_window_style, 0, 0);
+        
+        width = client_area.right - client_area.left;
+        height = client_area.bottom - client_area.top;
+        
+        handle = CreateWindowEx(
+                                0, GFX_WIN32_WINDOW_CLASS_NAME, title,
+                                win32_window_style, CW_USEDEFAULT, CW_USEDEFAULT,
+                                width, height, 0, 0, instance, 0);
+        
+        if (handle == 0) {
+            er_push("Failed to create a valid window");
+            error = 1;
+        }
+    }
+    
+    // @Note: Cleanup
+    if (error) {
+        if (handle) {
+            DestroyWindow(handle);
+        }
+    }
+    
+    GFX_Window *result = 0;
+    if (!error) {
+        FREE_LIST_ALLOC(win32_window_free);
+        slot->handle = handle;
+        result = win32_opaque_from_window(slot);
+    }
+    
+    return(result);
+}
+
+internal void gfx_window_destroy(GFX_Window *window)
+{
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (gfx_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            
+            if (w->destroy) {
+                w->destroy(window);
+            }
+            
+            DestroyWindow(w->handle);
+            FREE_LIST_RELEASE(win32_window_free, w);
+            MemoryZero(w, sizeof(Win32_Window));
+        }
+    }
+}
+
+internal b32 gfx_window_set_title(GFX_Window *window, const char *title)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (gfx_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            
+            if (SetWindowText(w->handle, title)) {
+                result = 1;
+            }        
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_set_visible(GFX_Window *window, b32 visible)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (gfx_window_is_valid(window)) {
+            int cmd = SW_HIDE;
+            if (visible) {
+                cmd = SW_SHOW;
+            }
+            
+            Win32_Window *w = win32_window_from_opaque(window);
+            ShowWindow(w->handle, cmd);
+            result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_set_resizable(GFX_Window *window, b32 resizable)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (gfx_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            
+            DWORD resizable_flags = WS_MAXIMIZEBOX|WS_SIZEBOX;
+            DWORD old_style = GetWindowLongW(w->handle, GWL_STYLE);
+            DWORD new_style = 0;
+            
+            if (resizable) {
+                new_style = old_style | resizable_flags;
+            } else {
+                new_style = old_style & (~resizable_flags);
+            }
+            
+            if (SetWindowLongW(w->handle, GWL_STYLE, new_style)) {
+                w->resizable = 1;
+                result = 1;
+            }
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_get_resizable(GFX_Window *window)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (gfx_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            result = w->resizable;
+        }
+    }
+    
+    return(result);
+}
+
+
+internal void gfx_process_input(void)
+{
+    MSG msg = {0};
+    while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+internal b32 gfx_window_is_valid(GFX_Window *window)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            if (w->handle) {
+                result = 1;
+            }
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_set_render_func(GFX_Window *window, gfx_render_func *render, void *data)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            w->render = render;
+            w->render_data = data;
+            result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_set_destroy_func(GFX_Window *window, gfx_destroy_func *destroy)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            w->destroy = destroy;
+            result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            
+            RECT win32_rect = {0};
+            GetClientRect(w->handle, &win32_rect);
+            
+            *width = (f32) (win32_rect.right - win32_rect.left);
+            *height = (f32) (win32_rect.bottom - win32_rect.top);
+            
+            result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_window_wants_to_quit(GFX_Window *window)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            result = w->wants_to_quit;
+        }
+    }
+    
+    return(result);
+}
+
+internal GFX_Window *gfx_win32_opaque_from_handle(HWND handle)
+{
+    GFX_Window *result = 0;
+    if (!gfx_is_init()) {
+        er_push("GFX layer not initialized");        
+    } else {
+        if (handle != 0) {
+            // @Note: Hash-map might cause too much overhead for now
+            for (usize i = 0; i < ARRAY_SIZE(win32_windows); ++i) {
+                if (win32_windows[i].handle == handle) {
+                    result = win32_opaque_from_window(&win32_windows[i]);
+                    break;
+                }
+            }
+        }
+    }
+    
+    return(result);
+}
+
+internal Win32_Window *gfx_win32_window_from_handle(HWND handle)
+{
+    Win32_Window *result = 0;
+    GFX_Window *w = gfx_win32_opaque_from_handle(handle);
+    
+    if (w) {
+        result = win32_window_from_opaque(w);
+    }
+    
+    return(result);
+}
+
+internal inline GFX_Window *gfx_win32_opaque_from_window(Win32_Window *window)
+{
+    return(win32_opaque_from_window(window));
+}
+
+internal inline Win32_Window *gfx_win32_window_from_opaque(GFX_Window *handle)
+{
+    return(win32_window_from_opaque(handle));
+}
