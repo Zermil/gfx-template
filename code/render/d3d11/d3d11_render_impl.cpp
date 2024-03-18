@@ -57,7 +57,7 @@ global u8 hlsl[] =
 "    float s = 1.0f - smoothstep(0.0f, 1.75f, sdf);\n"
 "    // @Note: we flip because we submit the colours in rgba format\n"
 "    float4 pixel_color = float4(tex.Sample(tex_sampler, input.uv) * input.col).abgr;\n"
-"    return(float4(pixel_color.rgb, s));\n"
+"    return(float4(pixel_color.rgb, s * pixel_color.a));\n"
 "}\n";
 
 internal b32 r_is_init(void)
