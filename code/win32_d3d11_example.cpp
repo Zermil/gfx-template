@@ -35,7 +35,32 @@ internal void render(GFX_Window *window, void *data)
     f32 width = 0.0f;
     f32 height = 0.0f;
     gfx_window_get_rect(window, &width, &height);
-    r_rect_tex(&ctx, { 0.0f, 0.0f, 600.0f, 600.0f }, 0.0f, texture);
+    
+    f32 rect_size = 300.0f;
+    f32 pad = 20.0f;
+    f32 x0 = width/2.0f - rect_size/2.0f;
+    f32 y0 = height/2.0f - rect_size/2.0f;
+    
+    RectF32 pos1 = {
+        x0, y0, 
+        x0 + rect_size, y0 + rect_size 
+    };
+    
+    RectF32 pos2 = { 
+        x0 + rect_size + pad, y0, 
+        x0 + 2.0f*rect_size + pad, y0 + rect_size
+    };
+    
+    RectF32 pos3 = { 
+        x0 - rect_size - pad, y0, 
+        x0 - pad, y0 + rect_size
+    };
+    
+    // @Note: Order matters, here we will get two batches, one for coloured quad
+    // the other one for _both_ textured quads.
+    r_rect(&ctx, pos1, 10.0f, 0x814A38FF);
+    r_rect_tex(&ctx, pos2, 0.0f, texture);
+    r_rect_tex(&ctx, pos3, 0.0f, texture);
     
     r_flush_batches(window, &list);
     r_frame_end(window);

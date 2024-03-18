@@ -226,6 +226,32 @@ internal b32 r_backend_init(void)
         d3d11_state.device->CreateSamplerState(&desc, &d3d11_state.sampler_state);
     }
     
+    // @Note: It's better not to use 'r_create_texture' here because 
+    // we are treating this entire thing slightly differently and want more control
+    if (!error) {
+        D3D11_TEXTURE2D_DESC tex_desc = {0};
+        tex_desc.Width = 1;
+        tex_desc.Height = 1;
+        tex_desc.MipLevels = 1;
+        tex_desc.ArraySize = 1;
+        tex_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        tex_desc.SampleDesc.Count = 1;
+        tex_desc.SampleDesc.Quality = 0;
+        tex_desc.Usage = D3D11_USAGE_DYNAMIC;
+        tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        tex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        tex_desc.MiscFlags = 0;
+        
+        u32 data[] = { 0xFFFFFFFF };
+        D3D11_SUBRESOURCE_DATA tex_data = {0};
+        tex_data.pSysMem = data;
+        tex_data.SysMemPitch = sizeof(u32);
+        tex_data.SysMemSlicePitch = 0; // @Note: Only used in 3D textures according to docs
+        
+        d3d11_state.device->CreateTexture2D(&tex_desc, &tex_data, &d3d11_state.dummy_texture.data);
+        d3d11_state.device->CreateShaderResourceView(d3d11_state.dummy_texture.data, 0, &d3d11_state.dummy_texture.view);
+    }
+    
     if (!error) {
         d3d11_is_init = 1;
     }
@@ -252,9 +278,8 @@ internal void r_backend_end(void)
     if (d3d11_state.sampler_state) d3d11_state.sampler_state->Release();
     
     if (d3d11_state.arena) arena_release(d3d11_state.arena);
-    
-    d3d11_state.first_free_texture = 0;
-    d3d11_state.cbuffer = {0};
+    if (d3d11_state.dummy_texture.data) d3d11_state.dummy_texture.data->Release();
+    if (d3d11_state.dummy_texture.view) d3d11_state.dummy_texture.view->Release();
 }
 
 internal b32 r_window_equip(GFX_Window *window)
@@ -430,6 +455,13 @@ internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize to
         }
         d3d11_state.context->Unmap(d3d11_state.buffer[I_BUFFER], 0);
         
+        D3D11_Texture *d3d11_texture = 0;
+        if (texture == 0) {
+            d3d11_texture = &d3d11_state.dummy_texture;
+        } else {
+            d3d11_texture = (D3D11_Texture *) texture;;
+        }
+        
         ID3D11Buffer *buffers[] = { d3d11_state.buffer[V_BUFFER], d3d11_state.buffer[I_BUFFER] };
         UINT strides[] = { sizeof(R_Vertex), sizeof(R_Quad) };
         UINT offsets[] = { 0, 0 };
@@ -447,8 +479,6 @@ internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize to
         
         d3d11_state.context->PSSetShader(d3d11_state.pixel_shader, 0, 0);
         d3d11_state.context->PSSetSamplers(0, 1, &d3d11_state.sampler_state);
-        
-        D3D11_Texture *d3d11_texture = (D3D11_Texture *) texture;
         d3d11_state.context->PSSetShaderResources(0, 1, &d3d11_texture->view);
         
         d3d11_state.context->OMSetRenderTargets(1, &w->target, 0);
@@ -541,6 +571,8 @@ internal b32 r_texture_destroy(R_Texture2D *texture)
         d3d11_texture->view->Release();
         
         SLLStackPush(d3d11_state.first_free_texture, d3d11_texture);
+        d3d11_texture = 0;
+        
     }
     
     b32 result = !error;

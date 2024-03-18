@@ -45,7 +45,7 @@ typedef struct {
     
     Arena *arena;
     D3D11_Texture *first_free_texture;
-    D3D11_Texture *last_free_texture;
+    D3D11_Texture dummy_texture;
 } D3D11_State;
 
 typedef struct {

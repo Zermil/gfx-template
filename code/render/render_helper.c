@@ -19,19 +19,25 @@ internal void r_prep_batch(Arena *arena, R_List *list, R_Texture2D *texture)
 {
     if (list->first == 0) {
         r_new_batch(arena, list);
-    }
-    
-    if (texture != 0) {
-        if (list->last->texture != 0 && list->last->texture != texture) {
+    } else {
+        if (list->last->texture != texture) {
             r_new_batch(arena, list);
         }
-        
-        list->last->texture = texture;
     }
+    
+    list->last->texture = texture;
 }
 
 internal void r_push_quad(Arena *arena, R_Quad_Batch *batch, R_Quad *quad)
 {
+    if (quad->pos.x0 > quad->pos.x1) {
+        SWAP(quad->pos.x0, quad->pos.x1, f32);
+    }
+    
+    if (quad->pos.y0 > quad->pos.y1) {
+        SWAP(quad->pos.y0, quad->pos.y1, f32);
+    }
+    
     if (batch->first == 0) {
         R_Quad_Node *node = arena_push_array(arena, R_Quad_Node, 1);
         SLLQueuePush(batch->first, batch->last, node);

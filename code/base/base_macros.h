@@ -40,13 +40,17 @@ extern "C" void __asan_unpoison_memory_region(void *, size_t);
 #endif
 
 #define IS_POW2(val) (((val) & ((val) - 1)) == 0)
-
 // @Note: 'val' becomes a multiple of 'pow', for more information you can read 'Hacker's Delight (2nd Edition) -- Chapter 3'
 #define ALIGN_POW2(val, pow) (((val) + (pow) - 1) & (~((pow) - 1)))
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
-
 #define AS_BOOL(x) ((x) != 0)
+#define SWAP(a, b, t)                           \
+do {                                        \
+t temp = (a);                           \
+(a) = (b);                              \
+(b) = temp;                             \
+} while (0);
 
 #define FREE_LIST_ALLOC(item) ((item) == 0 ? 0 : ((item) = (item)->next))
 #define FREE_LIST_RELEASE(ffree, item) ((item)->next = (ffree), (ffree) = (item))
