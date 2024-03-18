@@ -27,9 +27,4 @@ typedef struct {
     f32 y1;
 } RectF32;
 
-typedef struct {
-    u8 *data;
-    usize size;
-} String8;
-
 #endif // TYPES_H

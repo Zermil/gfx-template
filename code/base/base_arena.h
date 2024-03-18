@@ -25,7 +25,7 @@ typedef struct Arena {
     
     usize commit_pos;
     
-    b32 growing; // @Note: We want to allow for making arenas that are static i.e. not 'growing'
+    b32 growing; // @Note: We want to allow arenas that are static i.e. not 'growing'
     usize align;
     usize base_pos; // @Note: Helper for when we 'pop' arenas
 } Arena;

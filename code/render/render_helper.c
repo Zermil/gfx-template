@@ -91,7 +91,7 @@ internal void r_rect_tex(R_Ctx *ctx, RectF32 pos, f32 radius, R_Texture2D *textu
 internal void r_flush_batches(GFX_Window *window, R_List *list)
 {
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
     } else {
         R_Quad_Batch *batch = list->first;
         while (batch != 0) {

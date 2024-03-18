@@ -69,7 +69,7 @@ internal b32 r_backend_init(void)
 {
     b32 error = 0;
     if (d3d11_is_init) {
-        er_push("D3D11 is already initialized");
+        er_push(str8("D3D11 is already initialized"));
         error = 1;
     }
     
@@ -89,7 +89,7 @@ internal b32 r_backend_init(void)
                                         &d3d11_state.device, 0, &d3d11_state.context);
         
         if (res != S_OK) {
-            er_push("Failed to create d3d11 device and context");
+            er_push(str8("Failed to create d3d11 device and context"));
             error = 1;
         }
     }
@@ -125,7 +125,7 @@ internal b32 r_backend_init(void)
             OutputDebugString(v_msg);
             OutputDebugString(p_msg);
 #endif
-            er_push("Error creating shaders");
+            er_push(str8("Error creating shaders"));
             error = 1;
         }
         
@@ -286,12 +286,12 @@ internal b32 r_window_equip(GFX_Window *window)
 {
     b32 error = 0;
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
         error = 1;
     }
     
     if (!gfx_window_is_valid(window)) {
-        er_push("Invalid window provided");
+        er_push(str8("Invalid window provided"));
         error = 1;
     }    
     
@@ -299,7 +299,7 @@ internal b32 r_window_equip(GFX_Window *window)
     if (!error) {
         w = d3d11_window_from_opaque(window);
         if (w->swap_chain) {
-            er_push("Window already equipped, swap_chain already assigned");
+            er_push(str8("Window already equipped, swap_chain already assigned"));
             error = 1;
         }
     }
@@ -330,7 +330,7 @@ internal b32 r_window_equip(GFX_Window *window)
         factory->Release();
         
         if (w->swap_chain == 0) {
-            er_push("Error creating swap chain");
+            er_push(str8("Error creating swap chain"));
             error = 1;
         }
     }
@@ -355,7 +355,7 @@ internal b32 r_window_equip(GFX_Window *window)
 internal void r_window_unequip(GFX_Window *window)
 {
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             D3D11_Window *w = d3d11_window_from_opaque(window);
@@ -378,7 +378,7 @@ internal void r_frame_begin(GFX_Window *window)
     OPTICK_EVENT();
     
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             D3D11_Window *w = d3d11_window_from_opaque(window);
@@ -409,12 +409,12 @@ internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize to
     
     b32 error = 0;
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
         error = 1;
     }
     
     if (!gfx_window_is_valid(window)) {
-        er_push("provided window is invalid");
+        er_push(str8("provided window is invalid"));
         error = 1;
     }
     
@@ -496,7 +496,7 @@ internal void r_frame_end(GFX_Window *window)
     OPTICK_EVENT();
     
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             D3D11_Window *w = d3d11_window_from_opaque(window);
@@ -515,7 +515,7 @@ internal R_Texture2D *r_texture_create(void *data, u32 width, u32 height)
     R_Texture2D *result = 0;
     
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
     } else {
         D3D11_Texture *texture = d3d11_state.first_free_texture;
         if (texture == 0) {
@@ -556,12 +556,12 @@ internal b32 r_texture_destroy(R_Texture2D *texture)
 {
     b32 error = 0;
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
         error = 1;
     }
     
     if (texture == 0) {
-        er_push("Provided texture was null");
+        er_push(str8("Provided texture was null"));
         error = 1;
     }
     
@@ -586,12 +586,12 @@ internal b32 r_texture_update(R_Texture2D *texture, void *data, u32 width, u32 h
     
     b32 error = 0;
     if (!r_is_init()) {
-        er_push("render backend not initialized");
+        er_push(str8("render backend not initialized"));
         error = 1;
     }
     
     if (texture == 0) {
-        er_push("Provided texture was null");
+        er_push(str8("Provided texture was null"));
         error = 1;
     }
     

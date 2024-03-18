@@ -57,7 +57,7 @@ internal b32 gfx_init(void)
 {
     b32 error = 0;
     if (win32_gfx_is_init) {
-        er_push("GFX layer is already initialized");
+        er_push(str8("GFX layer is already initialized"));
         error = 1;
     }
     
@@ -72,7 +72,7 @@ internal b32 gfx_init(void)
         
         ATOM atom = RegisterClassEx(&window_class);
         if (atom == 0) {
-            er_push("Failed to register class");
+            er_push(str8("Failed to register class"));
             error = 1;
         }
     }
@@ -97,7 +97,7 @@ internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
 {
     b32 error = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
         error = 1;
     }
     
@@ -105,7 +105,7 @@ internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
     if (!error) {
         slot = win32_window_free;
         if (slot == 0) {
-            er_push("Run out of free windows to allocate from");
+            er_push(str8("Run out of free windows to allocate from"));
             error = 1;
         }
     }
@@ -131,7 +131,7 @@ internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
                                 width, height, 0, 0, instance, 0);
         
         if (handle == 0) {
-            er_push("Failed to create a valid window");
+            er_push(str8("Failed to create a valid window"));
             error = 1;
         }
     }
@@ -156,7 +156,7 @@ internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
 internal void gfx_window_destroy(GFX_Window *window)
 {
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -176,7 +176,7 @@ internal b32 gfx_window_set_title(GFX_Window *window, const char *title)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -194,7 +194,7 @@ internal b32 gfx_window_set_visible(GFX_Window *window, b32 visible)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             int cmd = SW_HIDE;
@@ -215,7 +215,7 @@ internal b32 gfx_window_set_resizable(GFX_Window *window, b32 resizable)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -244,7 +244,7 @@ internal b32 gfx_window_get_resizable(GFX_Window *window)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (gfx_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -269,7 +269,7 @@ internal b32 gfx_window_is_valid(GFX_Window *window)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (win32_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -286,7 +286,7 @@ internal b32 gfx_window_set_render_func(GFX_Window *window, gfx_render_func *ren
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (win32_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -303,7 +303,7 @@ internal b32 gfx_window_set_destroy_func(GFX_Window *window, gfx_destroy_func *d
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (win32_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -319,7 +319,7 @@ internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (win32_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -341,7 +341,7 @@ internal b32 gfx_window_wants_to_quit(GFX_Window *window)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (win32_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
@@ -356,7 +356,7 @@ internal GFX_Window *gfx_win32_opaque_from_handle(HWND handle)
 {
     GFX_Window *result = 0;
     if (!gfx_is_init()) {
-        er_push("GFX layer not initialized");        
+        er_push(str8("GFX layer not initialized"));
     } else {
         if (handle != 0) {
             // @Note: Hash-map might cause too much overhead for now

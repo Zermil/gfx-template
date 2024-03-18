@@ -110,12 +110,23 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     while (!gfx_window_wants_to_quit(window)) {
         OPTICK_FRAME("Main");
         
+        er_accum_start();
+        
         f64 frame_start = os_ticks_now();
         // f64 delta = frame_start - frame_prev;
         frame_prev = frame_start;
         
         gfx_process_input();
         render(window, frame_arena);
+        
+#ifndef NDEBUG
+        {
+            Arena_Temp temp = arena_temp_begin(arena);
+            String8 error = er_accum_end(temp.arena);
+            OutputDebugString((const char *) error.data);
+            arena_temp_end(&temp);
+        }
+#endif
         
         f64 frame_time = os_ticks_now() - frame_start;
         if (frame_time < FRAME_MS) {

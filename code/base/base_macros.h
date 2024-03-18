@@ -2,9 +2,9 @@
 #define BASE_MACROS_H
 
 #ifndef NDEBUG
-# define Assert(expr)                               \
-do {                                            \
-if (!(expr)) (*((volatile int *)0) = 0);    \
+# define Assert(expr)\
+do {\
+if (!(expr)) (*((volatile int *)0) = 0);\
 } while(0)
 #else
 # define Assert(expr) ((void)(expr))
@@ -45,46 +45,46 @@ extern "C" void __asan_unpoison_memory_region(void *, size_t);
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 #define AS_BOOL(x) ((x) != 0)
-#define SWAP(a, b, t)                           \
-do {                                        \
-t temp = (a);                           \
-(a) = (b);                              \
-(b) = temp;                             \
+#define SWAP(a, b, t)\
+do {\
+t temp = (a);\
+(a) = (b);\
+(b) = temp;\
 } while (0);
 
 #define FREE_LIST_ALLOC(item) ((item) == 0 ? 0 : ((item) = (item)->next))
 #define FREE_LIST_RELEASE(ffree, item) ((item)->next = (ffree), (ffree) = (item))
 
-#define SLLQueuePush(first, last, item)         \
-do {                                        \
-if ((first) == 0) {                     \
-(first) = (last) = (item);          \
-(item)->next = 0;                   \
-} else {                                \
-(last)->next = (item);              \
-(last) = (item);                    \
-(item)->next = 0;                   \
-}                                       \
+#define SLLQueuePush(first, last, item)\
+do {\
+if ((first) == 0) {\
+(first) = (last) = (item);\
+(item)->next = 0;\
+} else {\
+(last)->next = (item);\
+(last) = (item);\
+(item)->next = 0;\
+}\
 } while(0)
 
-#define SLLQueuePop(first, item)                \
-do {                                        \
-if ((first) == (last)) {                \
-(first) = (last) = 0;               \
-} else {                                \
-(first) = (first)->next;            \
-}                                       \
+#define SLLQueuePop(first, item)\
+do {\
+if ((first) == (last)) {\
+(first) = (last) = 0;\
+} else {\
+(first) = (first)->next;\
+}\
 } while(0)
 
-#define SLLStackPush(first, item)               \
-do {                                        \
-(item)->next = (first);                 \
-(first) = (item);                       \
+#define SLLStackPush(first, item)\
+do {\
+(item)->next = (first);\
+(first) = (item);\
 } while(0)
 
-#define SLLStackPop(first)                      \
-do {                                        \
-(first) = (first)->next;                \
+#define SLLStackPop(first)\
+do {\
+(first) = (first)->next;\
 } while(0)
 
 #include <string.h>
