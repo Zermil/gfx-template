@@ -136,6 +136,7 @@ internal void arena_pop_to(Arena *arena, usize pos)
         
         arena->current = current;
         usize rel_chunk_pos = pos_clamp - current->base_pos;
+        rel_chunk_pos = MAX(rel_chunk_pos, ARENA_HEADER_SIZE);
         
         {
             // @Note: This is very serious, if this assert hits, this means that our 'rel_chunk_pos' resides in uncommited/poisoned memory.
