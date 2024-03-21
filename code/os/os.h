@@ -12,4 +12,6 @@ internal b32 os_memory_commit(void *ptr, usize size);
 internal void os_memory_decommit(void *ptr, usize size);
 internal usize os_get_page_size(void);
 
+internal void os_exit_process(u32 code);
+
 #endif // OS_H

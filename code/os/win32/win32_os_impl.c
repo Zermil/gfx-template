@@ -100,3 +100,8 @@ internal usize os_get_page_size(void)
     GetSystemInfo(&sysinfo);
     return(sysinfo.dwPageSize);
 }
+
+internal void os_exit_process(u32 code)
+{
+    ExitProcess(code);
+}

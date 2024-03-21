@@ -98,7 +98,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     Arena *frame_arena = arena_make();
     
-    GFX_Window *window = gfx_window_create("A window", WIDTH, HEIGHT);
+    GFX_Window *window = gfx_window_create(str8("A window"), WIDTH, HEIGHT);
     gfx_window_set_resizable(window, 1);
     gfx_window_set_visible(window, 1);
     gfx_window_set_render_func(window, render, frame_arena);
@@ -123,7 +123,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         {
             Arena_Temp temp = arena_temp_begin(arena);
             String8 error = er_accum_end(temp.arena);
-            OutputDebugString((const char *) error.data);
+            if (error.size != 0) {
+                gfx_error_display(window, error, str8("Error"));
+                os_exit_process(1);
+            }
             arena_temp_end(&temp);
         }
 #endif

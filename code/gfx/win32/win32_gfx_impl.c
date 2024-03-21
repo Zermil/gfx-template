@@ -93,7 +93,7 @@ internal b32 gfx_init(void)
     return(result);
 }
 
-internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
+internal GFX_Window *gfx_window_create(String8 title, s32 width, s32 height)
 {
     b32 error = 0;
     if (!gfx_is_init()) {
@@ -126,7 +126,7 @@ internal GFX_Window *gfx_window_create(const char *title, s32 width, s32 height)
         height = client_area.bottom - client_area.top;
         
         handle = CreateWindowEx(
-                                0, GFX_WIN32_WINDOW_CLASS_NAME, title,
+                                0, GFX_WIN32_WINDOW_CLASS_NAME, (LPCSTR) title.data,
                                 win32_window_style, CW_USEDEFAULT, CW_USEDEFAULT,
                                 width, height, 0, 0, instance, 0);
         
@@ -172,7 +172,7 @@ internal void gfx_window_destroy(GFX_Window *window)
     }
 }
 
-internal b32 gfx_window_set_title(GFX_Window *window, const char *title)
+internal b32 gfx_window_set_title(GFX_Window *window, String8 title)
 {
     b32 result = 0;
     if (!gfx_is_init()) {
@@ -180,8 +180,7 @@ internal b32 gfx_window_set_title(GFX_Window *window, const char *title)
     } else {
         if (gfx_window_is_valid(window)) {
             Win32_Window *w = win32_window_from_opaque(window);
-            
-            if (SetWindowText(w->handle, title)) {
+            if (SetWindowText(w->handle, (LPCSTR) title.data)) {
                 result = 1;
             }        
         }
@@ -350,6 +349,12 @@ internal b32 gfx_window_wants_to_quit(GFX_Window *window)
     }
     
     return(result);
+}
+
+internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption)
+{
+    Win32_Window *w = win32_window_from_opaque(window);
+    MessageBox(w->handle, (LPCSTR) text.data, (LPCSTR) caption.data, MB_OK | MB_ICONEXCLAMATION);
 }
 
 internal GFX_Window *gfx_win32_opaque_from_handle(HWND handle)
