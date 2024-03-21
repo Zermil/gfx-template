@@ -110,7 +110,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     while (!gfx_window_wants_to_quit(window)) {
         OPTICK_FRAME("Main");
         
+#ifndef NDEBUG
         er_accum_start();
+#endif
         
         f64 frame_start = os_ticks_now();
         // f64 delta = frame_start - frame_prev;
