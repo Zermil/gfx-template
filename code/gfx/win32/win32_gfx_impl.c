@@ -6,6 +6,9 @@ global b32 win32_gfx_is_init = 0;
 global Win32_Window win32_windows[GFX_MAX_WINDOW_COUNT] = {0};
 global Win32_Window *win32_window_free = 0;
 
+global Arena *win32_arena = 0;
+global GFX_Event_List win32_event_list = {0};
+
 // @Note: +1 and -1 here are for the case when window is a null-pointer
 #define win32_window_from_opaque(w) (win32_windows + ((u64)(w) - 1))
 #define win32_opaque_from_window(w) ((GFX_Window *)(((w) - win32_windows) + 1))
@@ -23,11 +26,11 @@ internal b32 gfx_is_init(void)
 
 internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    GFX_Window *window = gfx_win32_opaque_from_handle(handle);
+    
     switch (msg) {
         case WM_CLOSE: {
-            Win32_Window *w = gfx_win32_window_from_handle(handle);
-            w->wants_to_quit = 1;
-            PostQuitMessage(0);
+            gfx_events_push(GFX_EVENT_QUIT, window);
         } break;
         
         case WM_GETMINMAXINFO: {
@@ -47,6 +50,12 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
                 win32_window->render(gfx_window, win32_window->render_data);
                 EndPaint(handle, &ps);
             }
+        } break;
+        
+        case WM_KEYDOWN: {
+            // @ToDo: Actaully translate the keycodes comming in
+            GFX_Event *event = gfx_events_push(GFX_EVENT_KEYDOWN, window);
+            event->character = wParam;
         } break;
     }
     
@@ -125,8 +134,7 @@ internal GFX_Window *gfx_window_create(String8 title, s32 width, s32 height)
         width = client_area.right - client_area.left;
         height = client_area.bottom - client_area.top;
         
-        handle = CreateWindowEx(
-                                0, GFX_WIN32_WINDOW_CLASS_NAME, (LPCSTR) title.data,
+        handle = CreateWindowEx(0, GFX_WIN32_WINDOW_CLASS_NAME, (LPCSTR) title.data,
                                 win32_window_style, CW_USEDEFAULT, CW_USEDEFAULT,
                                 width, height, 0, 0, instance, 0);
         
@@ -254,14 +262,37 @@ internal b32 gfx_window_get_resizable(GFX_Window *window)
     return(result);
 }
 
-
-internal void gfx_process_input(void)
+internal GFX_Event *gfx_events_push(GFX_Event_Kind kind, GFX_Window *window)
 {
+    GFX_Event *event = arena_push_array(win32_arena, GFX_Event, 1);
+    event->kind = kind;
+    event->window = window;
+    
+    SLLQueuePush(win32_event_list.first, win32_event_list.last, event);
+    win32_event_list.count += 1;
+    
+    return(win32_event_list.first);
+}
+
+internal void gfx_events_eat(GFX_Event_List *list, GFX_Event *event)
+{
+    SLLQueuePop(list->first, list->last);
+    MemoryZero(event, sizeof(GFX_Event));
+    list->count -= 1;
+}
+
+internal GFX_Event_List gfx_process_input(Arena *arena)
+{
+    win32_arena = arena;
+    MemoryZero(&win32_event_list, sizeof(GFX_Event_List));
+    
     MSG msg = {0};
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    
+    return(win32_event_list);
 }
 
 internal b32 gfx_window_is_valid(GFX_Window *window)
@@ -336,26 +367,15 @@ internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height)
     return(result);
 }
 
-internal b32 gfx_window_wants_to_quit(GFX_Window *window)
-{
-    b32 result = 0;
-    if (!gfx_is_init()) {
-        er_push(str8("GFX layer not initialized"));
-    } else {
-        if (win32_window_is_valid(window)) {
-            Win32_Window *w = win32_window_from_opaque(window);
-            result = w->wants_to_quit;
-        }
-    }
-    
-    return(result);
-}
-
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption)
 {
     Win32_Window *w = win32_window_from_opaque(window);
     MessageBox(w->handle, (LPCSTR) text.data, (LPCSTR) caption.data, MB_OK | MB_ICONEXCLAMATION);
 }
+
+//
+// @Note: Windows specific
+//
 
 internal GFX_Window *gfx_win32_opaque_from_handle(HWND handle)
 {

@@ -67,7 +67,7 @@ if ((first) == 0) {\
 }\
 } while(0)
 
-#define SLLQueuePop(first, item)\
+#define SLLQueuePop(first, last)\
 do {\
 if ((first) == (last)) {\
 (first) = (last) = 0;\

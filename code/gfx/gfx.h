@@ -11,9 +11,34 @@ typedef void GFX_Window;
 typedef void gfx_render_func(GFX_Window *window, void *data);
 typedef void gfx_destroy_func(GFX_Window *window);
 
+typedef enum {
+    GFX_EVENT_NONE = 0,
+    GFX_EVENT_QUIT,
+    GFX_EVENT_MOUSE,
+    GFX_EVENT_KEYDOWN,
+} GFX_Event_Kind;
+
+typedef struct GFX_Event {
+    struct GFX_Event *next;
+    
+    GFX_Window *window;
+    GFX_Event_Kind kind;
+    
+    u64 character;
+} GFX_Event;
+
+typedef struct {
+    GFX_Event *first;
+    GFX_Event *last;
+    usize count;
+} GFX_Event_List;
+
 internal b32 gfx_init(void);
 internal b32 gfx_is_init(void);
-internal void gfx_process_input(void);
+
+internal GFX_Event_List gfx_process_input(Arena *arena);
+internal void gfx_events_eat(GFX_Event_List *list, GFX_Event *event);
+internal GFX_Event *gfx_events_push(GFX_Event_Kind kind, GFX_Window *window);
 
 internal GFX_Window *gfx_window_create(String8 title, s32 width, s32 height);
 internal void gfx_window_destroy(GFX_Window *window);
@@ -25,7 +50,6 @@ internal b32 gfx_window_is_valid(GFX_Window *window);
 internal b32 gfx_window_set_render_func(GFX_Window *window, gfx_render_func *render, void *data);
 internal b32 gfx_window_set_destroy_func(GFX_Window *window, gfx_destroy_func *destroy);
 internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height);
-internal b32 gfx_window_wants_to_quit(GFX_Window *window);
 
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption);
 

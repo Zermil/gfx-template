@@ -14,11 +14,10 @@ typedef struct Win32_Window {
     
     HWND handle;
     b32 resizable;
-    b32 wants_to_quit;
-
+    
     gfx_render_func *render;
     void *render_data;
-
+    
     gfx_destroy_func *destroy;
 } Win32_Window;
 

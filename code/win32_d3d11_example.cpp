@@ -106,8 +106,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     r_window_equip(window);
     
+    bool should_quit = false;
     f64 frame_prev = os_ticks_now();
-    while (!gfx_window_wants_to_quit(window)) {
+    
+    while (!should_quit) {
         OPTICK_FRAME("Main");
         
 #ifndef NDEBUG
@@ -118,7 +120,17 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         // f64 delta = frame_start - frame_prev;
         frame_prev = frame_start;
         
-        gfx_process_input();
+        GFX_Event_List event_list = gfx_process_input(frame_arena);
+        for (GFX_Event *event = event_list.first; event != 0; event = event->next) {
+            switch (event->kind) {
+                case GFX_EVENT_QUIT: {
+                    should_quit = true;
+                } break;
+            }
+            
+            gfx_events_eat(&event_list, event);
+        }
+        
         render(window, frame_arena);
         
 #ifndef NDEBUG
