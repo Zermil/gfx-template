@@ -25,7 +25,6 @@ R_Texture2D *texture = 0;
 internal void render(GFX_Window *window, void *data)
 {
     Arena *frame_arena = (Arena *) data;
-    arena_clear(frame_arena);
     
     R_List list = {0};
     R_Ctx ctx = r_make_context(frame_arena, &list);
@@ -112,6 +111,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     while (!should_quit) {
         OPTICK_FRAME("Main");
         
+        arena_clear(frame_arena);
+        
 #ifndef NDEBUG
         er_accum_start();
 #endif
@@ -128,7 +129,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
                 } break;
             }
             
-            gfx_events_eat(&event_list, event);
+            gfx_events_eat(&event_list);
         }
         
         render(window, frame_arena);
