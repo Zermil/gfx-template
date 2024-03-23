@@ -109,9 +109,10 @@ internal String8 os_file_read(Arena *arena, String8 file)
                                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     
     if (file_handle != INVALID_HANDLE_VALUE) {
-        DWORD hi_size = 0;
-        DWORD lo_size = GetFileSize(file_handle, &hi_size);
-        usize file_size = ((usize) hi_size << 32) | (usize) lo_size;
+        LARGE_INTEGER win32_size = {0};
+        
+        GetFileSizeEx(file_handle, &win32_size);
+        u64 file_size = win32_size.QuadPart;
         
         Arena_Temp save_point = arena_temp_begin(arena);
         u8 *buffer = arena_push_array(arena, u8, file_size);
@@ -122,14 +123,14 @@ internal String8 os_file_read(Arena *arena, String8 file)
         u8 *end = buffer + file_size;
         b32 success = 1;
         while (start < end) {
-            usize total_to_read = (usize) (end - start);
-            DWORD to_read = (DWORD) (total_to_read);
+            u64 total_to_read = (usize) (end - start);
+            DWORD left_to_read = (DWORD) total_to_read;
             if (total_to_read > 0xFFFFFFFF) {
-                to_read = 0xFFFFFFFF;
+                left_to_read = 0xFFFFFFFF;
             }
             
             DWORD actual_read = 0;
-            if (!ReadFile(file_handle, buffer, to_read, &actual_read, 0)) {
+            if (!ReadFile(file_handle, buffer, left_to_read, &actual_read, 0)) {
                 success = 0;
                 break;
             }
