@@ -83,8 +83,7 @@ internal b32 r_backend_init(void)
         flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
         D3D_FEATURE_LEVEL features[] = { D3D_FEATURE_LEVEL_11_0 };
-        HRESULT res = D3D11CreateDevice(
-                                        0, D3D_DRIVER_TYPE_HARDWARE, 0, flags,
+        HRESULT res = D3D11CreateDevice(0, D3D_DRIVER_TYPE_HARDWARE, 0, flags,
                                         features, ARRAY_SIZE(features), D3D11_SDK_VERSION,
                                         &d3d11_state.device, 0, &d3d11_state.context);
         
@@ -443,16 +442,15 @@ internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize to
         D3D11_MAPPED_SUBRESOURCE vertex_resource = {0};
         d3d11_state.context->Map(d3d11_state.buffer[I_BUFFER], 0, D3D11_MAP_WRITE_DISCARD, 0, &vertex_resource);
         {
-            usize data_offset = 0;
-            R_Quad_Node *current = draw_data;
-            while (current != 0) {
-                usize quads_size = current->count * sizeof(R_Quad);
-                MemoryCopy((u8 *) vertex_resource.pData + data_offset, current->quads, quads_size);
-                data_offset += quads_size;
-                
-                current = current->next;
+            u8 *dst_ptr = (u8 *) vertex_resource.pData;
+            usize offset = 0;
+            for (R_Quad_Node *node = draw_data; node != 0; node = node->next) {
+                usize bytes = node->count * sizeof(R_Quad);
+                MemoryCopy(dst_ptr, node->quads, bytes);
+                offset += bytes;
             }
         }
+        
         d3d11_state.context->Unmap(d3d11_state.buffer[I_BUFFER], 0);
         
         D3D11_Texture *d3d11_texture = 0;
@@ -572,7 +570,6 @@ internal b32 r_texture_destroy(R_Texture2D *texture)
         
         SLLStackPush(d3d11_state.first_free_texture, d3d11_texture);
         d3d11_texture = 0;
-        
     }
     
     b32 result = !error;
