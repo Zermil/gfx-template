@@ -4,7 +4,7 @@ REM Change this to your visual studio's 'vcvars64.bat' script path
 set MSVC_PATH="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
 set CFLAGS=/EHsc /W4 /WX /FC /wd4996 /wd4201 /wd4115 /wd4505 /nologo /fsanitize=address /Zi 
 set CFLAGS_RELEASE=/EHsc /W4 /WX /FC /wd4996 /wd4201 /wd4115 /wd4505 /nologo /O2 /DNDEBUG /DUSE_OPTICK=0
-set LIBS=user32.lib
+set LIBS=user32.lib shell32.lib
 set D3D11_LIBS=dxgi.lib dxguid.lib d3d11.lib d3dcompiler.lib
 set OPENGL_LIBS=opengl32.lib
 
