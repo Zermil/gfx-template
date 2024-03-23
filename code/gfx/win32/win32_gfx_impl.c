@@ -14,11 +14,6 @@ global GFX_Event_List win32_event_list = {0};
 #define win32_opaque_from_window(w) ((GFX_Window *)(((w) - win32_windows) + 1))
 #define win32_window_is_valid(w) ((u64)(w) >= 1 && (u64)(w) < ARRAY_SIZE(win32_windows))
 
-// @ToDo: Mechanism for spawning 'child' windows?
-//
-// Currently when creating another window, when main window
-// exists, the child window is _not_ destroyed, this is bad.
-
 internal b32 gfx_is_init(void)
 {
     return(win32_gfx_is_init);
@@ -39,8 +34,7 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             info->ptMinTrackSize.y = GFX_WIN32_MIN_HEIGHT;
         } break;
         
-        case WM_SIZE:
-        case WM_PAINT: {
+        case WM_SIZE: {
             GFX_Window *gfx_window = gfx_win32_opaque_from_handle(handle);
             Win32_Window *win32_window = win32_window_from_opaque(gfx_window);
             
@@ -56,6 +50,29 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             // @ToDo: Actaully translate the keycodes comming in
             GFX_Event *event = gfx_events_push(GFX_EVENT_KEYDOWN, window);
             event->character = wParam;
+        } break;
+        
+        // @ToDo: Think about memory usage here, is it okay to use win32_arena?
+        // do these things need to live this long? (kinda since we have names as string?)
+        case WM_DROPFILES: {
+            GFX_Event *event = gfx_events_push(GFX_EVENT_DROPFILES, window);
+            
+            HDROP hdrop = (HDROP) wParam;
+            u32 count = DragQueryFile(hdrop, 0xFFFFFFFF, 0, 0);
+            
+            GFX_Drop_Files drop_files = {0};
+            drop_files.count = (usize) count;
+            drop_files.files = arena_push_array(win32_arena, GFX_Drop_Files_Node, drop_files.count);
+            
+            for (u32 i = 0; i < drop_files.count; ++i) {
+                u32 size = DragQueryFile(hdrop, i, 0, 0) + 1;
+                drop_files.files[i].name.size = (usize) size;
+                drop_files.files[i].name.data = arena_push_array(win32_arena, u8, (usize) size);
+                DragQueryFile(hdrop, i, (LPSTR) drop_files.files[i].name.data, (UINT) size);
+            }
+            
+            event->drop_files = drop_files;
+            DragFinish(hdrop);
         } break;
     }
     
@@ -228,7 +245,7 @@ internal b32 gfx_window_set_resizable(GFX_Window *window, b32 resizable)
             Win32_Window *w = win32_window_from_opaque(window);
             
             DWORD resizable_flags = WS_MAXIMIZEBOX|WS_SIZEBOX;
-            DWORD old_style = GetWindowLongW(w->handle, GWL_STYLE);
+            DWORD old_style = GetWindowLong(w->handle, GWL_STYLE);
             DWORD new_style = 0;
             
             if (resizable) {
@@ -237,8 +254,38 @@ internal b32 gfx_window_set_resizable(GFX_Window *window, b32 resizable)
                 new_style = old_style & (~resizable_flags);
             }
             
-            if (SetWindowLongW(w->handle, GWL_STYLE, new_style)) {
+            if (SetWindowLong(w->handle, GWL_STYLE, new_style)) {
                 w->resizable = 1;
+                result = 1;
+            }
+        }
+    }
+    
+    return(result);
+}
+
+
+internal b32 gfx_window_set_drop_files(GFX_Window *window, b32 drop_files)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push(str8("GFX layer not initialized"));
+    } else {
+        if (gfx_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            
+            DWORD drop_files_flags = WS_EX_ACCEPTFILES;
+            DWORD old_style = GetWindowLong(w->handle, GWL_EXSTYLE);
+            DWORD new_style = 0;
+            
+            if (drop_files) {
+                new_style = old_style | drop_files_flags;
+            } else {
+                new_style = old_style & (~drop_files_flags);
+            }
+            
+            if (SetWindowLong(w->handle, GWL_EXSTYLE, new_style)) {
+                w->drop_files = 1;
                 result = 1;
             }
         }
@@ -265,19 +312,21 @@ internal b32 gfx_window_get_resizable(GFX_Window *window)
 internal GFX_Event *gfx_events_push(GFX_Event_Kind kind, GFX_Window *window)
 {
     GFX_Event *event = arena_push_array(win32_arena, GFX_Event, 1);
-    event->kind = kind;
-    event->window = window;
     
-    SLLQueuePush(win32_event_list.first, win32_event_list.last, event);
-    win32_event_list.count += 1;
+    if (event != 0) {
+        event->kind = kind;
+        event->window = window;
+        
+        SLLQueuePush(win32_event_list.first, win32_event_list.last, event);
+        win32_event_list.count += 1;
+    }
     
     return(win32_event_list.first);
 }
 
-internal void gfx_events_eat(GFX_Event_List *list, GFX_Event *event)
+internal void gfx_events_eat(GFX_Event_List *list)
 {
     SLLQueuePop(list->first, list->last);
-    MemoryZero(event, sizeof(GFX_Event));
     list->count -= 1;
 }
 
