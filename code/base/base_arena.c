@@ -122,32 +122,29 @@ internal void arena_pop_to(Arena *arena, usize pos)
 {
     OPTICK_EVENT();
     
-    Arena *current = arena->current;
-    usize total_pos = arena_pos(arena);
+    usize pos_clamp = MAX(pos, ARENA_HEADER_SIZE);
     
-    if (pos < total_pos) {
-        usize pos_clamp = MAX(pos, ARENA_HEADER_SIZE);
-        while (pos_clamp < current->base_pos) {
-            Arena *prev = current->prev;
-            ASAN_MEM_POISON(current, current->chunk_cap);
-            os_memory_release(current);
-            current = prev;
-        }
-        
-        arena->current = current;
-        usize rel_chunk_pos = pos_clamp - current->base_pos;
-        rel_chunk_pos = MAX(rel_chunk_pos, ARENA_HEADER_SIZE);
-        
-        {
-            // @Note: This is very serious, if this assert hits, this means that our 'rel_chunk_pos' resides in uncommited/poisoned memory.
-            // we _could_ also go a different route and do some if(s) and checks or similar approaches to
-            // ensure we pop _more_ stuff, but, as a consequence, everything's correct when it comes to memory access.
-            Assert(rel_chunk_pos <= current->chunk_pos);
-        }
-        
-        ASAN_MEM_POISON((u8 *) current + rel_chunk_pos, current->chunk_pos - rel_chunk_pos);
-        current->chunk_pos = rel_chunk_pos;
+    Arena *current = arena->current;
+    while (current->base_pos >= pos_clamp) {
+        Arena *prev = current->prev;
+        os_memory_release(current);
+        current = prev;
     }
+    
+    Assert(current);
+    
+    arena->current = current;
+    usize rel_chunk_pos = pos_clamp - current->base_pos;
+    
+    {
+        // @Note: This is very serious, if this assert hits, this means that our 'rel_chunk_pos' resides in uncommited/poisoned memory.
+        // we _could_ also go a different route and do some if(s) and checks or similar approaches to
+        // ensure we pop _more_ stuff, but, as a consequence, everything's correct when it comes to memory access.
+        Assert(rel_chunk_pos <= current->chunk_pos);
+    }
+    
+    ASAN_MEM_POISON((u8 *) current + rel_chunk_pos, current->chunk_pos - rel_chunk_pos);
+    current->chunk_pos = rel_chunk_pos;
 }
 
 internal usize arena_pos(Arena *arena)
