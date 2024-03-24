@@ -47,13 +47,13 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
         } break;
         
         case WM_KEYDOWN: {
-            // @ToDo: Actaully translate the keycodes comming in
+            // @ToDo: Actaully translate the keycodes comming in to something useful
             GFX_Event *event = gfx_events_push(GFX_EVENT_KEYDOWN, window);
             event->character = wParam;
         } break;
         
         // @ToDo: Think about memory usage here, is it okay to use win32_arena?
-        // do these things need to live this long? (kinda since we have names as string?)
+        // do these things need to live this long? (kinda since we have names as String8?)
         case WM_DROPFILES: {
             GFX_Event *event = gfx_events_push(GFX_EVENT_DROPFILES, window);
             
@@ -73,6 +73,13 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             
             event->drop_files = drop_files;
             DragFinish(hdrop);
+        } break;
+        
+        case WM_LBUTTONUP: {
+            // @Note: wParam here, describes what key was down when we release mouse
+            // could be useful with ctrl+click.
+            GFX_Event *event = gfx_events_push(GFX_EVENT_LBUTTONUP, window);
+            gfx_mouse_get_relative_pos(window, &event->mouse_x, &event->mouse_y);
         } break;
     }
     
@@ -410,6 +417,47 @@ internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height)
             *height = (f32) (win32_rect.bottom - win32_rect.top);
             
             result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_mouse_get_screen_pos(s32 *mx, s32 *my)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push(str8("GFX layer not initialized"));
+    } else {
+        POINT mouse = {0};
+        if (GetCursorPos(&mouse)) {
+            *mx = mouse.x;
+            *my = mouse.y;
+            result = 1;
+        }
+    }
+    
+    return(result);
+}
+
+internal b32 gfx_mouse_get_relative_pos(GFX_Window *window, s32 *mx, s32 *my)
+{
+    b32 result = 0;
+    if (!gfx_is_init()) {
+        er_push(str8("GFX layer not initialized"));
+    } else {
+        if (win32_window_is_valid(window)) {
+            Win32_Window *w = win32_window_from_opaque(window);
+            POINT mouse = {0};
+            
+            b32 get_mouse = gfx_mouse_get_screen_pos((s32 *) &mouse.x, (s32 *) &mouse.y);
+            b32 get_client = ScreenToClient(w->handle, &mouse);
+            
+            if (get_mouse && get_client) {
+                *mx = mouse.x;
+                *my = mouse.y;
+                result = 1;
+            }
         }
     }
     

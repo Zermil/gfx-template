@@ -16,6 +16,7 @@ typedef enum {
     GFX_EVENT_QUIT,
     GFX_EVENT_MOUSE,
     GFX_EVENT_KEYDOWN,
+    GFX_EVENT_LBUTTONUP,
     GFX_EVENT_DROPFILES,
 } GFX_Event_Kind;
 
@@ -33,8 +34,11 @@ typedef struct GFX_Event {
     GFX_Window *window;
     
     GFX_Event_Kind kind;
+    
     u64 character;
     GFX_Drop_Files drop_files;
+    s32 mouse_x;
+    s32 mouse_y;
 } GFX_Event;
 
 typedef struct {
@@ -57,12 +61,15 @@ internal b32 gfx_window_is_valid(GFX_Window *window);
 internal b32 gfx_window_set_visible(GFX_Window *window, b32 visible);
 internal b32 gfx_window_set_title(GFX_Window *window, String8 title);
 internal b32 gfx_window_set_resizable(GFX_Window *window, b32 resizable);
-internal b32 gfx_window_get_resizable(GFX_Window *window);
 internal b32 gfx_window_set_render_func(GFX_Window *window, gfx_render_func *render, void *data);
 internal b32 gfx_window_set_destroy_func(GFX_Window *window, gfx_destroy_func *destroy);
 internal b32 gfx_window_set_drop_files(GFX_Window *window, b32 drop_files);
 
 internal b32 gfx_window_get_rect(GFX_Window *window, f32 *width, f32 *height);
+internal b32 gfx_window_get_resizable(GFX_Window *window);
+
+internal b32 gfx_mouse_get_screen_pos(s32 *mx, s32 *my);
+internal b32 gfx_mouse_get_relative_pos(GFX_Window *window, s32 *mx, s32 *my);
 
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption);
 
