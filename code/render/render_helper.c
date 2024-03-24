@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 internal R_Ctx r_make_context(Arena *arena, R_List *list)
 {
     R_Ctx result = {0};
