@@ -15,6 +15,9 @@ typedef struct Win32_Window {
     HWND handle;
     b32 resizable;
     b32 drop_files;
+    HCURSOR cursor;
+    
+    b32 resizing;
     
     gfx_render_func *render;
     void *render_data;

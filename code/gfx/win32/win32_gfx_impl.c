@@ -46,6 +46,23 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             }
         } break;
         
+        case WM_ENTERSIZEMOVE: {
+            Win32_Window *w = gfx_win32_window_from_handle(handle);
+            w->resizing = 1;
+        } break;
+        
+        case WM_EXITSIZEMOVE: {
+            Win32_Window *w = gfx_win32_window_from_handle(handle);
+            w->resizing = 0;
+        } break;
+        
+        case WM_SETCURSOR: {
+            Win32_Window *w = gfx_win32_window_from_handle(handle);
+            if (!w->resizing) {
+                SetClassLongPtr(handle, GCLP_HCURSOR, (LONG_PTR) w->cursor);
+            }
+        } break;
+        
         case WM_KEYDOWN: {
             // @ToDo: Actaully translate the keycodes comming in to something useful
             GFX_Event *event = gfx_events_push(GFX_EVENT_KEYDOWN, window);
@@ -462,6 +479,35 @@ internal b32 gfx_mouse_get_relative_pos(GFX_Window *window, s32 *mx, s32 *my)
     }
     
     return(result);
+}
+
+internal void gfx_mouse_set_cursor(GFX_Window *window, GFX_Cursor_Kind kind)
+{
+    if (!gfx_is_init()) {
+        er_push(str8("GFX layer not initialized"));
+    } else {
+        Win32_Window *w = win32_window_from_opaque(window);
+        HCURSOR cursor = w->cursor;
+        
+        switch (kind) {
+            case GFX_CURSOR_POINTER: {
+                cursor = LoadCursor(0, IDC_ARROW);
+            } break;
+            
+            case GFX_CURSOR_HAND: {
+                cursor = LoadCursor(0, IDC_HAND);
+            } break;
+            
+            case GFX_CURSOR_HSIZE: {
+                cursor = LoadCursor(0, IDC_SIZEWE);
+            } break;
+        }
+        
+        if (w->cursor != cursor) {
+            w->cursor = cursor;
+            SetCursor(w->cursor);
+        }
+    }
 }
 
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption)

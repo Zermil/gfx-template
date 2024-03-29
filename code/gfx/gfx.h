@@ -20,6 +20,12 @@ typedef enum {
     GFX_EVENT_DROPFILES,
 } GFX_Event_Kind;
 
+typedef enum {
+    GFX_CURSOR_POINTER = 0,
+    GFX_CURSOR_HAND,
+    GFX_CURSOR_HSIZE,
+} GFX_Cursor_Kind;
+
 typedef struct {
     String8 name;
 } GFX_Drop_Files_Node;
@@ -70,6 +76,7 @@ internal b32 gfx_window_get_resizable(GFX_Window *window);
 
 internal b32 gfx_mouse_get_screen_pos(s32 *mx, s32 *my);
 internal b32 gfx_mouse_get_relative_pos(GFX_Window *window, s32 *mx, s32 *my);
+internal void gfx_mouse_set_cursor(GFX_Window *window, GFX_Cursor_Kind kind);
 
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption);
 
