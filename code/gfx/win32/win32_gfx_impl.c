@@ -98,6 +98,11 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             GFX_Event *event = gfx_events_push(GFX_EVENT_LBUTTONUP, window);
             gfx_mouse_get_relative_pos(window, &event->mouse_x, &event->mouse_y);
         } break;
+        
+        case WM_LBUTTONDOWN: {
+            GFX_Event *event = gfx_events_push(GFX_EVENT_LBUTTONDOWN, window);
+            gfx_mouse_get_relative_pos(window, &event->mouse_x, &event->mouse_y);
+        } break;
     }
     
     return(DefWindowProc(handle, msg, wParam, lParam));
