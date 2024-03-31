@@ -55,7 +55,7 @@ t temp = (a);\
 #define FREE_LIST_ALLOC(item) ((item) == 0 ? 0 : ((item) = (item)->next))
 #define FREE_LIST_RELEASE(ffree, item) ((item)->next = (ffree), (ffree) = (item))
 
-#define SLLQueuePush(first, last, item)\
+#define SLLQueuePush_N(first, last, item, next)\
 do {\
 if ((first) == 0) {\
 (first) = (last) = (item);\
@@ -67,7 +67,7 @@ if ((first) == 0) {\
 }\
 } while(0)
 
-#define SLLQueuePop(first, last)\
+#define SLLQueuePop_N(first, last, next)\
 do {\
 if ((first) == (last)) {\
 (first) = (last) = 0;\
@@ -76,16 +76,22 @@ if ((first) == (last)) {\
 }\
 } while(0)
 
-#define SLLStackPush(first, item)\
+#define SLLQueuePush(first, last, item) SLLQueuePush_N((first), (last), (item), next)
+#define SLLQueuePop(first, last) SLLQueuePop_N((first), (last), next)
+
+#define SLLStackPush_N(first, item, next)\
 do {\
 (item)->next = (first);\
 (first) = (item);\
 } while(0)
 
-#define SLLStackPop(first)\
+#define SLLStackPop_N(first, next)\
 do {\
 (first) = (first)->next;\
 } while(0)
+
+#define SLLStackPush(first, item) SLLStackPush_N(first, item, next)
+#define SLLStackPop(first) SLLStackPop_N(first, next)
 
 #include <string.h>
 #define MemoryZero(p, size) memset((p), 0, (size))
