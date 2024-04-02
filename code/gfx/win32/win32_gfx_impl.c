@@ -201,6 +201,7 @@ internal GFX_Window *gfx_window_create(String8 title, s32 width, s32 height)
     if (!error) {
         FREE_LIST_ALLOC(win32_window_free);
         slot->handle = handle;
+        slot->cursor = LoadCursor(0, IDC_ARROW);
         result = win32_opaque_from_window(slot);
     }
     
@@ -495,7 +496,7 @@ internal void gfx_mouse_set_cursor(GFX_Window *window, GFX_Cursor_Kind kind)
         HCURSOR cursor = w->cursor;
         
         switch (kind) {
-            case GFX_CURSOR_POINTER: {
+            case GFX_CURSOR_ARROW: {
                 cursor = LoadCursor(0, IDC_ARROW);
             } break;
             

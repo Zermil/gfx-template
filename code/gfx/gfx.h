@@ -22,7 +22,7 @@ typedef enum {
 } GFX_Event_Kind;
 
 typedef enum {
-    GFX_CURSOR_POINTER = 0,
+    GFX_CURSOR_ARROW = 0,
     GFX_CURSOR_HAND,
     GFX_CURSOR_HSIZE,
 } GFX_Cursor_Kind;
