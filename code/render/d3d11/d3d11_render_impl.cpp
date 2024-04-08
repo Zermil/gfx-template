@@ -593,12 +593,12 @@ internal b32 r_texture_update(R_Texture2D *texture, void *data, u32 width, u32 h
     }
     
     if (!error) {
-        ID3D11Texture2D *d3d11_texture = (ID3D11Texture2D *) texture;
+        D3D11_Texture *d3d11_texture = (D3D11_Texture *) texture;
         
         D3D11_MAPPED_SUBRESOURCE texture_resource = {0};
-        d3d11_state.context->Map(d3d11_texture, 0, D3D11_MAP_WRITE_DISCARD, 0, &texture_resource);
+        d3d11_state.context->Map(d3d11_texture->data, 0, D3D11_MAP_WRITE_DISCARD, 0, &texture_resource);
         MemoryCopy(texture_resource.pData, data, sizeof(u32)*width*height);
-        d3d11_state.context->Unmap(d3d11_texture, 0);
+        d3d11_state.context->Unmap(d3d11_texture->data, 0);
     }
     
     b32 result = !error;

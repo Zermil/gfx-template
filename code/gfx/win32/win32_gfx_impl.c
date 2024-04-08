@@ -351,7 +351,7 @@ internal GFX_Event *gfx_events_push(GFX_Event_Kind kind, GFX_Window *window)
         win32_event_list.count += 1;
     }
     
-    return(win32_event_list.first);
+    return(event);
 }
 
 internal void gfx_events_eat(GFX_Event_List *list)

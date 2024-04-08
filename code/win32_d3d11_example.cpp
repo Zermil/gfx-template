@@ -2,7 +2,10 @@
 #define HANDMADE_MATH_USE_TURNS 1
 
 #define FPS 60
-#define FRAME_MS (1000.0/FPS)
+#define FRAME_MS (1000.0f/FPS)
+
+#define WIDTH 1280
+#define HEIGHT 720
 
 #include "./dependencies/HandmadeMath.h"
 #include "./dependencies/optick.h"
@@ -16,9 +19,6 @@
 #include "./os/os_inc.c"
 #include "./gfx/gfx_inc.c"
 #include "./render/render_inc.c"
-
-#define WIDTH 1280
-#define HEIGHT 720
 
 R_Texture2D *texture = 0;
 
