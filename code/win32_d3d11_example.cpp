@@ -105,7 +105,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     r_window_equip(window);
     
-    bool should_quit = false;
+    b32 should_quit = 0;
     f64 frame_prev = os_ticks_now();
     
     while (!should_quit) {
@@ -123,10 +123,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         
         GFX_Event_List event_list = gfx_process_input(frame_arena);
         for (GFX_Event *event = event_list.first; event != 0; event = event->next) {
-            switch (event->kind) {
-                case GFX_EVENT_QUIT: {
-                    should_quit = true;
-                } break;
+            if (event->kind == GFX_EVENT_QUIT) {
+                should_quit = 1;
+                goto frame_end;
             }
             
             gfx_events_eat(&event_list);
@@ -134,6 +133,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         
         render(window, frame_arena);
         
+        frame_end:
 #ifndef NDEBUG
         {
             Arena_Temp temp = arena_temp_begin(arena);
