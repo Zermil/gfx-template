@@ -531,7 +531,7 @@ internal R_Texture2D *r_texture_create(void *data, u32 width, u32 height)
         tex_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         tex_desc.SampleDesc.Count = 1;
         tex_desc.SampleDesc.Quality = 0;
-        tex_desc.Usage = D3D11_USAGE_DYNAMIC;
+        tex_desc.Usage = D3D11_USAGE_DEFAULT;
         tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
         tex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         tex_desc.MiscFlags = 0;
@@ -544,7 +544,7 @@ internal R_Texture2D *r_texture_create(void *data, u32 width, u32 height)
         d3d11_state.device->CreateTexture2D(&tex_desc, &tex_data, &texture->data);
         d3d11_state.device->CreateShaderResourceView(texture->data, 0, &texture->view);
         
-        result = (void *) texture;
+        result = (R_Texture2D *) texture;
     }
     
     return(result);
@@ -595,10 +595,23 @@ internal b32 r_texture_update(R_Texture2D *texture, void *data, u32 width, u32 h
     if (!error) {
         D3D11_Texture *d3d11_texture = (D3D11_Texture *) texture;
         
+        D3D11_BOX box = {0};
+        box.front = 0;
+        box.back = 1;
+        box.left = 0;
+        box.right = width;
+        box.top = 0;
+        box.bottom = height;
+        
+        d3d11_state.context->UpdateSubresource(d3d11_texture->data, 0, &box, data, sizeof(u32)*width, sizeof(u32)*width*height);
+        
+        // @ToDo: This is causing 'use after poison' sometimes, should investigate
+#if 0
         D3D11_MAPPED_SUBRESOURCE texture_resource = {0};
         d3d11_state.context->Map(d3d11_texture->data, 0, D3D11_MAP_WRITE_DISCARD, 0, &texture_resource);
         MemoryCopy(texture_resource.pData, data, sizeof(u32)*width*height);
         d3d11_state.context->Unmap(d3d11_texture->data, 0);
+#endif
     }
     
     b32 result = !error;
