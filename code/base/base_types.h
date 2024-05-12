@@ -27,10 +27,4 @@ typedef struct {
     f32 y1;
 } RectF32;
 
-// @Note: Not used for math, just for basic data storage
-typedef struct {
-    f32 x;
-    f32 y;
-} Vec2F32;
-
 #endif // TYPES_H
