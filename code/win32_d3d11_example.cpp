@@ -7,8 +7,8 @@
 #define WIDTH 1280
 #define HEIGHT 720
 
-#include "./dependencies/HandmadeMath.h"
-#include "./dependencies/optick.h"
+#include <HandmadeMath.h>
+#include <optick.h>
 
 #include "./base/base_inc.h"
 #include "./os/os_inc.h"
