@@ -134,8 +134,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         render(window, frame_arena);
         
         frame_end:
-#ifndef NDEBUG
         {
+#ifndef NDEBUG
             Arena_Temp temp = arena_temp_begin(arena);
             String8 error = er_accum_end(temp.arena);
             if (error.size != 0) {
@@ -143,8 +143,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
                 os_exit_process(1);
             }
             arena_temp_end(&temp);
-        }
 #endif
+        }
         
         f64 frame_time = os_ticks_now() - frame_start;
         if (frame_time < FRAME_MS) {
