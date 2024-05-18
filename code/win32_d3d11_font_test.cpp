@@ -29,28 +29,30 @@
 #define GLYPH_COUNT 128
 
 typedef struct Glyph_Info Glyph_Info;
-struct Glyph_Info
-{
+struct Glyph_Info {
     u32 x0, y0;
     u32 x1, y1;
     u32 xo, yo;
     u32 advance;
 };
 
-global Glyph_Info glyphs[GLYPH_COUNT] = {0};
-global R_Texture2D *font_atlas = 0;
+typedef struct Font_Atlas Font_Atlas;
+struct Font_Atlas {
+    R_Texture2D *texture;
+    Glyph_Info glyphs[GLYPH_COUNT];
+};
 
-internal void font_init(Arena *arena) 
+internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size) 
 {
-    Arena_Temp font_arena = arena_temp_begin(arena);
+    Font_Atlas result = {0};
     
     FT_Library ft = {0};
     FT_Face face = {0};
     
     FT_Init_FreeType(&ft);
-    FT_New_Face(ft, "./Inconsolata-Regular.ttf", 0, &face);
+    FT_New_Face(ft, (const char *) font_name.data, 0, &face);
     
-    FT_F26Dot6 char_size = (32 << 6);
+    u32 char_size = (font_size << 6);
     u32 dpi = 300;
     FT_Set_Char_Size(face, 0, char_size, dpi, dpi);
     
@@ -61,11 +63,10 @@ internal void font_init(Arena *arena)
     while (tex_width < max_dim) tex_width <<= 1;
     u32 tex_height = tex_width;
     
-    u8 *pixels = arena_push_array(font_arena.arena, u8, tex_width*tex_height);
+    u32 *pixels = arena_push_array(arena, u32, tex_width*tex_height);
     
     u32 tex_x = 0;
     u32 tex_y = 0;
-    
     for (u32 i = 0; i < GLYPH_COUNT; ++i) {
         FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
         FT_Bitmap *bmp = &face->glyph->bitmap;
@@ -81,35 +82,28 @@ internal void font_init(Arena *arena)
             for (u32 col = 0; col < bmp->width; ++col) {
                 u32 x = tex_x + col;
                 u32 y = tex_y + row;
-                pixels[y*tex_width + x] = bmp->buffer[row*bmp->pitch + col];
+                u8 pixel = bmp->buffer[row*bmp->pitch + col];
+                pixels[y*tex_width + x] = (pixel << 3*8) | (pixel << 2*8) | (pixel << 1*8) | 0xFF;
             }
         }
         
         // @Note: Info for rendering individual glyphs.
-        glyphs[i].x0 = tex_x;
-        glyphs[i].y0 = tex_y;
-        glyphs[i].x1 = tex_x + bmp->width;
-        glyphs[i].y1 = tex_y + bmp->rows;
+        result.glyphs[i].x0 = tex_x;
+        result.glyphs[i].y0 = tex_y;
+        result.glyphs[i].x1 = tex_x + bmp->width;
+        result.glyphs[i].y1 = tex_y + bmp->rows;
         
-        glyphs[i].xo = face->glyph->bitmap_left;
-        glyphs[i].yo = face->glyph->bitmap_top;
-        glyphs[i].advance = (face->glyph->advance.x >> 6);
+        result.glyphs[i].xo = face->glyph->bitmap_left;
+        result.glyphs[i].yo = face->glyph->bitmap_top;
+        result.glyphs[i].advance = (face->glyph->advance.x >> 6);
         
         tex_x += bmp->width + 1;
     }
     
+    result.texture = r_texture_create(pixels, tex_width, tex_height);
     FT_Done_FreeType(ft);
     
-    // @Note: Actual font-atlas rendering
-    u32 *atlas_data = arena_push_array(arena, u32, tex_width*tex_height);
-    for (u32 i = 0; i < (tex_width*tex_height); ++i) {
-        if (pixels[i]) {
-            atlas_data[i] = (pixels[i] << 3*8) | (pixels[i] << 2*8) | (pixels[i] << 1*8) | 0xFF;
-        }
-    }
-    
-    font_atlas = r_texture_create(atlas_data, tex_width, tex_height);
-    arena_temp_end(&font_arena);
+    return(result);
 }
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int cmd_show)
@@ -136,7 +130,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     r_window_equip(window);
     
-    font_init(arena);
+    Font_Atlas font_atlas = font_init(arena, str8("./Inconsolata-Regular.ttf"), 32);
     
     b32 should_quit = 0;
     while (!should_quit) {
@@ -169,7 +163,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         
         r_frame_begin(window);
         {
-            r_rect_tex(&ctx, pos, 0.0f, font_atlas);
+            r_rect_tex(&ctx, pos, 0.0f, font_atlas.texture);
         }
         r_flush_batches(window, &list);
         r_frame_end(window);
