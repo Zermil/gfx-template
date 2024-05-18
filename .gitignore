@@ -4,6 +4,7 @@
 *.ilk
 *.pdb
 *.txt
+!LICENSE.TXT
 *.raddbg
 win32_d3d11_app.lib
 win32_d3d11_app.exp
