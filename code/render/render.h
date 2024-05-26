@@ -6,7 +6,6 @@ typedef void R_Texture2D;
 // @Note: Used for templates
 typedef struct {
     HMM_Vec2 pos;
-    HMM_Vec2 uv;
 } R_Vertex;
 
 // @Note: Used for instancing and batching
@@ -14,6 +13,7 @@ typedef struct {
     RectF32 pos;
     u32 col;
     f32 radius;
+    RectF32 uv;
 } R_Quad;
 
 typedef struct R_Quad_Node {

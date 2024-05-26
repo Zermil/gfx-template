@@ -10,7 +10,7 @@ global b32 d3d11_is_init = 0;
 global u8 hlsl[] =
 "struct VS_INPUT {\n"
 "    float2 pos   : POS;\n"
-"    float2 uv    : UV;\n"
+"    float4 uv    : UV;\n"
 "    float4 quad  : QUAD;\n"
 "    float4 col   : COL;\n"
 "    float radius : RADIUS;\n"
@@ -36,15 +36,16 @@ global u8 hlsl[] =
 "\n"
 "PS_INPUT main_vs(VS_INPUT input) {\n"
 "    PS_INPUT output;\n"
-"    output.uv = input.uv;\n"
 "    output.col = input.col;\n"
 "    output.radius = input.radius;\n"
 "    output.quad_center = (input.quad.xy + input.quad.zw)/2.0f;\n"
 "    // @Note: Treat rect bigger than actually, makes for a nicer smoothstep.\n"
 "    output.quad_half = (input.quad.zw - input.quad.xy)/2.0f + input.radius;\n"
 "    output.quad_pos = output.quad_center + input.pos*output.quad_half;\n"
-"    float2 norm_pos = (output.quad_pos/resolution)*2.0f - 1.0f;\n"
-"    output.pos = float4(norm_pos.x, -norm_pos.y, 0.0f, 1.0f);\n"
+"    float2 norm_pos = (input.pos + 1.0f)/2.0f;\n"
+"    output.uv = float2(lerp(input.uv.x, input.uv.z, norm_pos.x), lerp(input.uv.y, input.uv.w, norm_pos.y));\n"
+"    float2 screen_pos = (output.quad_pos/resolution)*2.0f - 1.0f;\n"
+"    output.pos = float4(screen_pos.x, -screen_pos.y, 0.0f, 1.0f);\n"
 "    return(output);\n"
 "}\n"
 "\n"
@@ -141,10 +142,10 @@ internal b32 r_backend_init(void)
         D3D11_INPUT_ELEMENT_DESC desc[] = {
             // Template
             { "POS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             
             // Instancing
             { "QUAD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, offsetof(R_Quad, pos), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "UV", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, offsetof(R_Quad, uv), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
             { "COL", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 1, offsetof(R_Quad, col), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
             { "RADIUS", 0, DXGI_FORMAT_R32_FLOAT, 1, offsetof(R_Quad, radius), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         };
@@ -161,10 +162,10 @@ internal b32 r_backend_init(void)
         // @Note: This has to be defined in a specific way because we're using
         // triangle-strip as a primitive + back-face culling.
         R_Vertex v_data[] = {
-            { { -1.0f, +1.0f }, { 0.0f, 1.0f } },
-            { { -1.0f, -1.0f }, { 0.0f, 0.0f } },
-            { { +1.0f, +1.0f }, { 1.0f, 1.0f } },
-            { { +1.0f, -1.0f }, { 1.0f, 0.0f } },
+            { { -1.0f, +1.0f } },
+            { { -1.0f, -1.0f } },
+            { { +1.0f, +1.0f } },
+            { { +1.0f, -1.0f } },
         };
         D3D11_SUBRESOURCE_DATA vertex_data = { v_data };
         
@@ -457,7 +458,7 @@ internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize to
         if (texture == 0) {
             d3d11_texture = &d3d11_state.dummy_texture;
         } else {
-            d3d11_texture = (D3D11_Texture *) texture;;
+            d3d11_texture = (D3D11_Texture *) texture;
         }
         
         ID3D11Buffer *buffers[] = { d3d11_state.buffer[V_BUFFER], d3d11_state.buffer[I_BUFFER] };
