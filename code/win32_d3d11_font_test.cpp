@@ -30,10 +30,11 @@
 
 typedef struct Glyph_Info Glyph_Info;
 struct Glyph_Info {
-    u32 x0, y0;
-    u32 x1, y1;
-    u32 xo, yo;
-    u32 advance;
+    RectF32 uv;
+    f32 width;
+    f32 height;
+    f32 xo, yo;
+    f32 advance;
 };
 
 typedef struct Font_Atlas Font_Atlas;
@@ -42,6 +43,7 @@ struct Font_Atlas {
     Glyph_Info glyphs[GLYPH_COUNT];
 };
 
+// @ToDo: Proper rectangle packing algorithm.
 internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size) 
 {
     Font_Atlas result = {0};
@@ -53,7 +55,7 @@ internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size)
     FT_New_Face(ft, (const char *) font_name.data, 0, &face);
     
     u32 char_size = (font_size << 6);
-    u32 dpi = 300;
+    u32 dpi = 96;
     FT_Set_Char_Size(face, 0, char_size, dpi, dpi);
     
     // @Note: Estimate font atlas size
@@ -65,23 +67,23 @@ internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size)
     
     u32 *pixels = arena_push_array(arena, u32, tex_width*tex_height);
     
-    u32 tex_x = 0;
-    u32 tex_y = 0;
+    f32 tex_x = 0.0f;
+    f32 tex_y = 0.0f;
     for (u32 i = 0; i < GLYPH_COUNT; ++i) {
         FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
         FT_Bitmap *bmp = &face->glyph->bitmap;
         
         // @Note: Ensure that we're still in bounds.
         if (tex_x + bmp->width >= tex_width) {
-            tex_x = 0;
-            tex_y += (face->size->metrics.height >> 6) + 1;
+            tex_x = 0.0f;
+            tex_y += (face->size->metrics.height >> 6) + 1.0f;
         }
         
         // @Note: Copy glyph's pixels.
         for (u32 row = 0; row < bmp->rows; ++row) {
             for (u32 col = 0; col < bmp->width; ++col) {
-                u32 x = tex_x + col;
-                u32 y = tex_y + row;
+                u32 x = (u32) tex_x + col;
+                u32 y = (u32) tex_y + row;
                 u8 pixel = bmp->buffer[row*bmp->pitch + col];
                 
                 if (pixel) {
@@ -91,14 +93,17 @@ internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size)
         }
         
         // @Note: Info for rendering individual glyphs.
-        result.glyphs[i].x0 = tex_x;
-        result.glyphs[i].y0 = tex_y;
-        result.glyphs[i].x1 = tex_x + bmp->width;
-        result.glyphs[i].y1 = tex_y + bmp->rows;
+        result.glyphs[i].uv.x0 = tex_x/tex_width;
+        result.glyphs[i].uv.y0 = tex_y/tex_height;
+        result.glyphs[i].uv.x1 = (tex_x + bmp->width)/tex_width;
+        result.glyphs[i].uv.y1 = (tex_y + bmp->rows)/tex_height;
         
-        result.glyphs[i].xo = face->glyph->bitmap_left;
-        result.glyphs[i].yo = face->glyph->bitmap_top;
-        result.glyphs[i].advance = (face->glyph->advance.x >> 6);
+        result.glyphs[i].width = (f32) bmp->width;
+        result.glyphs[i].height = (f32) bmp->rows;
+        
+        result.glyphs[i].xo = (f32) face->glyph->bitmap_left;
+        result.glyphs[i].yo = (f32) face->glyph->bitmap_top;
+        result.glyphs[i].advance = (f32) (face->glyph->advance.x >> 6);
         
         tex_x += bmp->width + 1;
     }
@@ -107,6 +112,30 @@ internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size)
     FT_Done_FreeType(ft);
     
     return(result);
+}
+
+internal void r_text(R_Ctx *ctx, Font_Atlas *font_atlas, HMM_Vec2 pos, String8 text)
+{
+    // @ToDo: This was just here to get started, please change it to something better.
+    f32 max_h = -1.0f;
+    for (u32 i = 0; i < text.size; ++i) {
+        Glyph_Info glyph = font_atlas->glyphs[text.data[i]];
+        max_h = MAX(max_h, glyph.height);
+    }
+    
+    for (u32 i = 0; i < text.size; ++i) {
+        Glyph_Info glyph = font_atlas->glyphs[text.data[i]];
+        f32 x = pos.X + glyph.xo;
+        f32 y = (pos.Y + max_h) - glyph.yo;
+        
+        RectF32 glyph_pos = {
+            x, y,
+            x + glyph.width, y + glyph.height
+        };
+        
+        r_rect_tex_ex(ctx, glyph_pos, 0.0f, glyph.uv, font_atlas->texture);
+        pos.X += glyph.advance;
+    }
 }
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int cmd_show)
@@ -156,18 +185,14 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         R_List list = {0};
         R_Ctx ctx = r_make_context(frame_arena, &list);
         
+        r_frame_begin(window);
+        
         f32 w, h;
         gfx_window_get_rect(window, &w, &h);
         
-        RectF32 pos = {
-            20.0f, 20.0f,
-            w - 20.0f, h - 20.0f
-        };
+        r_text(&ctx, &font_atlas, { 0.0f, 0.0f }, str8("Sample text"));
+        r_text(&ctx, &font_atlas, { w/2.0f, h/2.0f }, str8("Nothing more to say"));
         
-        r_frame_begin(window);
-        {
-            r_rect_tex(&ctx, pos, 0.0f, font_atlas.texture);
-        }
         r_flush_batches(window, &list);
         r_frame_end(window);
         
