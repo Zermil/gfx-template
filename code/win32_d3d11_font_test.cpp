@@ -83,7 +83,10 @@ internal Font_Atlas font_init(Arena *arena, String8 font_name, u32 font_size)
                 u32 x = tex_x + col;
                 u32 y = tex_y + row;
                 u8 pixel = bmp->buffer[row*bmp->pitch + col];
-                pixels[y*tex_width + x] = (pixel << 3*8) | (pixel << 2*8) | (pixel << 1*8) | 0xFF;
+                
+                if (pixel) {
+                    pixels[y*tex_width + x] = (pixel << 3*8) | (pixel << 2*8) | (pixel << 1*8) | 0xFF;
+                }
             }
         }
         
