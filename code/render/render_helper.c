@@ -88,6 +88,19 @@ internal void r_rect_tex(R_Ctx *ctx, RectF32 pos, f32 radius, R_Texture2D *textu
     r_push_quad(ctx->arena, ctx->list->last, &quad);
 }
 
+internal void r_rect_tex_ex(R_Ctx *ctx, RectF32 pos, f32 radius, RectF32 uv, R_Texture2D *texture)
+{
+    r_prep_batch(ctx->arena, ctx->list, texture);
+    
+    R_Quad quad = {0};
+    quad.pos = pos;
+    quad.col = 0xFFFFFFFF;
+    quad.radius = radius;
+    quad.uv = uv;
+    
+    r_push_quad(ctx->arena, ctx->list->last, &quad);
+}
+
 internal void r_flush_batches(GFX_Window *window, R_List *list)
 {
     if (!r_is_init()) {
