@@ -2,6 +2,10 @@
  * ideally we want something that just creates a texture atlas with all
  * glyphs and returns that as a texture. We just want a textured quad for now, nothing
  * too fancy.
+* 
+* [ ] Rectangle packing
+* [ ] Baseline calculation
+* [ ] Rendering diacritics -- Norwegian, Russian etc.
  */
 #define R_BACKEND_D3D11 1
 
