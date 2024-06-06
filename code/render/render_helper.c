@@ -70,6 +70,7 @@ internal void r_rect(R_Ctx *ctx, RectF32 pos, f32 radius, u32 col)
     quad.pos = pos;
     quad.col = col;
     quad.radius = radius;
+    quad.theta = 0.0f;
     quad.uv = { 0.0f, 0.0f, 1.0f, 1.0f };
     
     r_push_quad(ctx->arena, ctx->list->last, &quad);
@@ -83,6 +84,7 @@ internal void r_rect_tex(R_Ctx *ctx, RectF32 pos, f32 radius, R_Texture2D *textu
     quad.pos = pos;
     quad.col = 0xFFFFFFFF;
     quad.radius = radius;
+    quad.theta = 0.0f;
     quad.uv = { 0.0f, 0.0f, 1.0f, 1.0f };
     
     r_push_quad(ctx->arena, ctx->list->last, &quad);
@@ -96,6 +98,7 @@ internal void r_rect_tex_ex(R_Ctx *ctx, RectF32 pos, f32 radius, RectF32 uv, R_T
     quad.pos = pos;
     quad.col = 0xFFFFFFFF;
     quad.radius = radius;
+    quad.theta = 0.0f;
     quad.uv = uv;
     
     r_push_quad(ctx->arena, ctx->list->last, &quad);

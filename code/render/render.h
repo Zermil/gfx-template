@@ -11,9 +11,10 @@ typedef struct {
 // @Note: Used for instancing and batching
 typedef struct {
     RectF32 pos;
+    RectF32 uv;
     u32 col;
     f32 radius;
-    RectF32 uv;
+    f32 theta;
 } R_Quad;
 
 typedef struct R_Quad_Node {

@@ -7,6 +7,7 @@ global b32 d3d11_is_init = 0;
 
 #define d3d11_window_from_opaque(w) (d3d11_windows + (u64)(w))
 
+// @ToDo: Clean-up all this mess in the shader.
 global u8 hlsl[] =
 "struct VS_INPUT {\n"
 "    float2 pos   : POS;\n"
@@ -14,6 +15,7 @@ global u8 hlsl[] =
 "    float4 quad  : QUAD;\n"
 "    float4 col   : COL;\n"
 "    float radius : RADIUS;\n"
+"    float theta  : THETA;\n"
 "};\n"
 "\n"
 "struct PS_INPUT {\n"
@@ -35,6 +37,8 @@ global u8 hlsl[] =
 "}\n"
 "\n"
 "PS_INPUT main_vs(VS_INPUT input) {\n"
+"    float s_theta = sin(input.theta);\n"
+"    float c_theta = cos(input.theta);\n"
 "    PS_INPUT output;\n"
 "    output.col = input.col;\n"
 "    output.radius = input.radius;\n"
@@ -42,9 +46,12 @@ global u8 hlsl[] =
 "    // @Note: Treat rect bigger than actually, makes for a nicer smoothstep.\n"
 "    output.quad_half = (input.quad.zw - input.quad.xy)/2.0f + input.radius;\n"
 "    output.quad_pos = output.quad_center + input.pos*output.quad_half;\n"
+"    float2 qr = output.quad_pos - output.quad_center;\n"
+"    float2 pr = float2(qr.x*c_theta - qr.y*s_theta, qr.x*s_theta + qr.y*c_theta);\n"
+"    float2 p = output.quad_center + pr;\n"
 "    float2 norm_pos = (input.pos + 1.0f)/2.0f;\n"
 "    output.uv = float2(lerp(input.uv.x, input.uv.z, norm_pos.x), lerp(input.uv.y, input.uv.w, norm_pos.y));\n"
-"    float2 screen_pos = (output.quad_pos/resolution)*2.0f - 1.0f;\n"
+"    float2 screen_pos = (p/resolution)*2.0f - 1.0f;\n"
 "    output.pos = float4(screen_pos.x, -screen_pos.y, 0.0f, 1.0f);\n"
 "    return(output);\n"
 "}\n"
@@ -148,6 +155,7 @@ internal b32 r_backend_init(void)
             { "UV", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, offsetof(R_Quad, uv), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
             { "COL", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 1, offsetof(R_Quad, col), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
             { "RADIUS", 0, DXGI_FORMAT_R32_FLOAT, 1, offsetof(R_Quad, radius), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "THETA", 0, DXGI_FORMAT_R32_FLOAT, 1, offsetof(R_Quad, theta), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         };
         
         d3d11_state.device->CreateVertexShader(vshader->GetBufferPointer(), vshader->GetBufferSize(), NULL, &d3d11_state.vertex_shader);
