@@ -6,3 +6,4 @@ Font rendering:
 
 Rendering:
   [~] Lines and rotated quads
+  [ ] 'Scissors' regions
