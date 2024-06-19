@@ -11,7 +11,7 @@ Most, if not all, of the code follows the same principles described in [This you
 `os` - Deals with OS specific stuff; win32, linux etc.  
 `render` - Deals with backend API specific stuff; d3d11, opengl etc.
 
-If someone is taken aback a little by the use of linked list, there's [this great article](https://www.rfleury.com/p/in-defense-of-linked-lists) by [Ryan Fleury](https://twitter.com/ryanjfleury). Short version is that they work very well with arenas and as free-list for quick allocations.
+If someone is taken a little aback by the use of linked list, there's [this great article](https://www.rfleury.com/p/in-defense-of-linked-lists) by [Ryan Fleury](https://twitter.com/ryanjfleury). Short version is that they work very well with arenas and as free-list for quick allocations.
 
 ## build
 
