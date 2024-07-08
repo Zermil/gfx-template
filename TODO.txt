@@ -1,5 +1,5 @@
 Font rendering:
-  [ ] Rectangle packing
+  [X] Rectangle packing
   [ ] Baseline calculation
   [ ] Rendering diacritics -- Norwegian, Russian etc.
   [ ] (optional/maybe) Eventually move on from FreeType and roll something custom? (or use dwrite but it's a pain to use)

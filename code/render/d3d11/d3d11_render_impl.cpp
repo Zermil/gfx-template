@@ -183,7 +183,8 @@ internal b32 r_backend_init(void)
         desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
         desc.CPUAccessFlags = 0;
         d3d11_state.device->CreateBuffer(&desc, &vertex_data, &d3d11_state.buffer[V_BUFFER]);
-        
+
+        // @ToDo: Grow buffer when it becomes full.
         desc.ByteWidth      = R_D3D11_BUFFER_INIT_CAP;
         desc.Usage          = D3D11_USAGE_DYNAMIC;
         desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
