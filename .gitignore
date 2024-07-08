@@ -4,6 +4,7 @@
 *.ilk
 *.pdb
 *.txt
+*.rdi
 !LICENSE.TXT
 !TODO.txt
 *.raddbg
