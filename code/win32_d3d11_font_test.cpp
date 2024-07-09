@@ -209,7 +209,11 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
 }
 
 internal void r_text(R_Ctx *ctx, Font *font_atlas, HMM_Vec2 pos, String8 text)
-{    
+{
+    // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
+    pos.X = (f32) ((s32) (pos.X));
+    pos.Y = (f32) ((s32) (pos.Y));
+    
     // @ToDo: This was just here to get started, please change it to something better.
     f32 max_h = -1.0f;
     for (u32 i = 0; i < text.size; ++i) {
@@ -288,8 +292,16 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         R_Ctx ctx = r_make_context(frame_arena, &list);
         r_frame_begin(window);
 
+        f32 w, h;
+        gfx_window_get_rect(window, &w, &h);
+        
+        HMM_Vec2 text_pos = {
+            w*.5f,
+            h*.5f
+        };
+        
         r_rect_tex(&ctx, { 0.0f, 0.0f, font_atlas.texture_size.X, font_atlas.texture_size.Y }, 0.0f, font_atlas.texture);
-        r_text(&ctx, &font_atlas, { 600.0f, 300.0f }, str8("Nothing more to say!&"));
+        r_text(&ctx, &font_atlas, text_pos, str8("Nothing more to say!&"));
         
         r_flush_batches(window, &list);
         r_frame_end(window);
