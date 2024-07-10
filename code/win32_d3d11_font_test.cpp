@@ -48,6 +48,8 @@ struct Font
 {
     R_Texture2D *texture;
     HMM_Vec2 texture_size;
+    u32 font_size;
+    
     Font_Glyph_Info glyphs[FONT_GLYPH_COUNT];
 };
 
@@ -150,6 +152,7 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
     
     Font result = {0};
     result.texture_size = { FONT_INIT_ATLAS_SIZE, FONT_INIT_ATLAS_SIZE };
+    result.font_size = font_size;
 
     // @Note: First populate basic metrics and calculate texture size.
     for (u32 i = 0; i < FONT_GLYPH_COUNT; ++i) {
@@ -208,30 +211,37 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
     return(result);
 }
 
-internal void r_text(R_Ctx *ctx, Font *font_atlas, HMM_Vec2 pos, String8 text)
+internal f32 r_text_width(Font *font, String8 text)
+{
+    f32 result = 0.0f;
+    for (u32 i = 0; i < text.size; ++i) {
+        Font_Glyph_Info glyph = font->glyphs[text.data[i]];
+        result += glyph.advance;
+    }
+    
+    return(result);
+}
+
+internal void r_text(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text)
 {
     // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
     pos.X = (f32) ((s32) (pos.X));
     pos.Y = (f32) ((s32) (pos.Y));
-    
-    // @ToDo: This was just here to get started, please change it to something better.
-    f32 max_h = -1.0f;
-    for (u32 i = 0; i < text.size; ++i) {
-        Font_Glyph_Info glyph = font_atlas->glyphs[text.data[i]];
-        max_h = MAX(max_h, glyph.size.Y);
-    }
-    
-    for (u32 i = 0; i < text.size; ++i) {
-        Font_Glyph_Info glyph = font_atlas->glyphs[text.data[i]];
-        f32 x = pos.X + glyph.offset.X;
-        f32 y = (pos.Y + max_h) - glyph.offset.Y;
-        
-        RectF32 glyph_pos = {
-            x, y,
-            x + glyph.size.X, y + glyph.size.Y
-        };
 
-        r_rect_tex_ex(ctx, glyph_pos, 0.0f, glyph.uv, font_atlas->texture);
+    for (u32 i = 0; i < text.size; ++i) {
+        Font_Glyph_Info glyph = font->glyphs[text.data[i]];
+        
+        HMM_Vec2 glyph_pos = {
+            pos.X + glyph.offset.X,
+            pos.Y - glyph.offset.Y
+        };
+        
+        RectF32 glyph_rect = {
+            glyph_pos.X, glyph_pos.Y,
+            glyph_pos.X + glyph.size.X, glyph_pos.Y + glyph.size.Y
+        };
+        
+        r_rect_tex_ex(ctx, glyph_rect, 0.0f, glyph.uv, font->texture);
         pos.X += glyph.advance;
     }
 }
@@ -294,15 +304,17 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
 
         f32 w, h;
         gfx_window_get_rect(window, &w, &h);
-        
+
+        String8 prompt = str8("Nothing more to say!&");
+        f32 text_w = r_text_width(&font_atlas, prompt);
         HMM_Vec2 text_pos = {
-            w*.5f,
-            h*.5f
+            (w - text_w)*.5f,
+            (h - font_atlas.font_size)*.5f
         };
-        
+
+        r_text(&ctx, &font_atlas, text_pos, prompt);
         r_rect_tex(&ctx, { 0.0f, 0.0f, font_atlas.texture_size.X, font_atlas.texture_size.Y }, 0.0f, font_atlas.texture);
-        r_text(&ctx, &font_atlas, text_pos, str8("Nothing more to say!&"));
-        
+
         r_flush_batches(window, &list);
         r_frame_end(window);
         
