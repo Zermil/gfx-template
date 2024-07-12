@@ -92,6 +92,8 @@ internal f32 font_text_width(Font *font, String8 text)
 
 internal void font_r_text_ex(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text, f32 scale)
 {
+    OPTICK_EVENT();
+  
     // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
     pos.X = (f32) ((s32) (pos.X));
     pos.Y = (f32) ((s32) (pos.Y));
