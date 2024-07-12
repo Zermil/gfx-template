@@ -74,18 +74,23 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
     return(result);
 }
 
-internal f32 font_text_width(Font *font, String8 text)
+internal f32 font_text_width_ex(Font *font, String8 text, f32 scale)
 {
     f32 result = 0.0f;
     for (u32 i = 0; i < text.size; ++i) {
         Font_Glyph_Info glyph = font->glyphs[text.data[i]];
-        result += glyph.advance;
+        result += glyph.advance*scale;
     }
     
     return(result);
 }
 
-internal void font_r_text(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text)
+internal f32 font_text_width(Font *font, String8 text)
+{    
+    return(font_text_width_ex(font, text, 1.0f));
+}
+
+internal void font_r_text_ex(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text, f32 scale)
 {
     // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
     pos.X = (f32) ((s32) (pos.X));
@@ -95,16 +100,21 @@ internal void font_r_text(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text)
         Font_Glyph_Info glyph = font->glyphs[text.data[i]];
         
         HMM_Vec2 glyph_pos = {
-            pos.X + glyph.offset.X,
-            pos.Y - glyph.offset.Y
+            pos.X + glyph.offset.X*scale,
+            pos.Y - glyph.offset.Y*scale
         };
         
         RectF32 glyph_rect = {
             glyph_pos.X, glyph_pos.Y,
-            glyph_pos.X + glyph.size.X, glyph_pos.Y + glyph.size.Y
+            glyph_pos.X + glyph.size.X*scale, glyph_pos.Y + glyph.size.Y*scale
         };
         
         r_rect_tex_ex(ctx, glyph_rect, 0.0f, glyph.uv, font->texture);
-        pos.X += glyph.advance;
+        pos.X += glyph.advance*scale;
     }
+}
+
+internal void font_r_text(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text)
+{
+    font_r_text_ex(ctx, font, pos, text, 1.0f);
 }

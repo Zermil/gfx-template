@@ -27,7 +27,7 @@
 #include "./os/os_inc.h"
 #include "./gfx/gfx_inc.h"
 #include "./render/render_inc.h"
-#include "./font/font_inc.h"
+#include "./font/font_inc.h" // @Note: Include font after render, maybe there's a way to de-couple those...
 
 #include "./base/base_inc.c"
 #include "./os/os_inc.c"
@@ -59,7 +59,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     r_window_equip(window);
     
-    Font font_atlas = font_init(arena, str8("./Inconsolata-Regular.ttf"), 32, 96);
+    Font font = font_init(arena, str8("./Inconsolata-Regular.ttf"), 32, 96);
     
     b32 should_quit = 0;
     f64 frame_prev = os_ticks_now();
@@ -94,15 +94,16 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         f32 w, h;
         gfx_window_get_rect(window, &w, &h);
 
+        f32 scale = 1.0f;
         String8 prompt = str8("Nothing more to say!&");
-        f32 text_w = font_text_width(&font_atlas, prompt);
+        f32 text_w = font_text_width_ex(&font, prompt, scale);
         HMM_Vec2 text_pos = {
             (w - text_w)*.5f,
-            (h - font_atlas.font_size)*.5f
+            (h - font.font_size)*.5f
         };
 
-        font_r_text(&ctx, &font_atlas, text_pos, prompt);
-        r_rect_tex(&ctx, { 0.0f, 0.0f, font_atlas.texture_size.X, font_atlas.texture_size.Y }, 0.0f, font_atlas.texture);
+        font_r_text_ex(&ctx, &font, text_pos, prompt, scale);
+        r_rect_tex(&ctx, { 0.0f, 0.0f, font.texture_size.X, font.texture_size.Y }, 0.0f, font.texture);
 
         r_flush_batches(window, &list);
         r_frame_end(window);
