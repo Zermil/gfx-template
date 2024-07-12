@@ -1,6 +1,7 @@
 Font rendering:
   [X] Rectangle packing
   [ ] Rendering diacritics -- Norwegian, Russian etc.
+  [ ] Make them look better when scaled up/down
   [ ] (optional/maybe) Eventually move on from FreeType and roll something custom? (or use dwrite but it's a pain to use)
 
 Rendering:
