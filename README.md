@@ -9,7 +9,8 @@ Most, if not all, of the code follows the same principles described in [This you
 `base` - Helpers and useful 'standard library' functions.  
 `gfx` - Deals with opening a window on a specific OS.  
 `os` - Deals with OS specific stuff; win32, linux etc.  
-`render` - Deals with backend API specific stuff; d3d11, opengl etc.
+`render` - Deals with backend API specific stuff; d3d11, opengl etc.  
+`font` - Different font providers, font rasterization and rendering.  
 
 If someone is taken a little aback by the use of linked list, there's [this great article](https://www.rfleury.com/p/in-defense-of-linked-lists) by [Ryan Fleury](https://twitter.com/ryanjfleury). Short version is that they work very well with arenas and as free-list for quick allocations.
 
