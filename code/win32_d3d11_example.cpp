@@ -57,7 +57,7 @@ internal void render(GFX_Window *window, void *data)
     
     // @Note: Order matters, here we will get two batches, one for coloured quad
     // the other one for _both_ textured quads.
-    r_rect(&ctx, pos1, 10.0f, 0x814A38FF);
+    r_rect(&ctx, pos1, 0x814A38FF, 10.0f);
     r_rect_tex(&ctx, pos2, 0.0f, texture);
     r_rect_tex(&ctx, pos3, 0.0f, texture);
     
