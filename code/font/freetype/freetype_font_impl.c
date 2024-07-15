@@ -1,3 +1,10 @@
+global b32 freetype_is_init = 0;
+
+internal b32 font_is_init(void)
+{
+    return(freetype_is_init);
+}
+
 internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
 {
     Arena_Temp scratch = arena_temp_begin(arena);
@@ -70,6 +77,8 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
     
     FT_Done_FreeType(ft);
     arena_temp_end(&scratch);
+
+    freetype_is_init = 1;
     
     return(result);
 }
@@ -77,9 +86,13 @@ internal Font font_init(Arena *arena, String8 font_name, u32 font_size, u32 dpi)
 internal f32 font_text_width_ex(Font *font, String8 text, f32 scale)
 {
     f32 result = 0.0f;
-    for (u32 i = 0; i < text.size; ++i) {
-        Font_Glyph_Info glyph = font->glyphs[text.data[i]];
-        result += glyph.advance*scale;
+    if (font_is_init()) {
+        for (u32 i = 0; i < text.size; ++i) {
+            Font_Glyph_Info glyph = font->glyphs[text.data[i]];
+            result += glyph.advance*scale;
+        }
+    } else {
+        er_push(str8("font not initialized"));
     }
     
     return(result);
@@ -93,26 +106,30 @@ internal f32 font_text_width(Font *font, String8 text)
 internal void font_r_text_ex(R_Ctx *ctx, Font *font, HMM_Vec2 pos, String8 text, f32 scale)
 {
     OPTICK_EVENT();
-  
-    // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
-    pos.X = (f32) ((s32) (pos.X));
-    pos.Y = (f32) ((s32) (pos.Y));
 
-    for (u32 i = 0; i < text.size; ++i) {
-        Font_Glyph_Info glyph = font->glyphs[text.data[i]];
+    if (font_is_init()) {
+        // @Hack(?): This is here because UV coordinates get messed up for pos = something.5f
+        pos.X = (f32) ((s32) (pos.X));
+        pos.Y = (f32) ((s32) (pos.Y));
+
+        for (u32 i = 0; i < text.size; ++i) {
+            Font_Glyph_Info glyph = font->glyphs[text.data[i]];
         
-        HMM_Vec2 glyph_pos = {
-            pos.X + glyph.offset.X*scale,
-            pos.Y - glyph.offset.Y*scale
-        };
+            HMM_Vec2 glyph_pos = {
+                pos.X + glyph.offset.X*scale,
+                pos.Y - glyph.offset.Y*scale
+            };
         
-        RectF32 glyph_rect = {
-            glyph_pos.X, glyph_pos.Y,
-            glyph_pos.X + glyph.size.X*scale, glyph_pos.Y + glyph.size.Y*scale
-        };
-        
-        r_rect_tex_ex(ctx, glyph_rect, 0.0f, glyph.uv, font->texture);
-        pos.X += glyph.advance*scale;
+            RectF32 glyph_rect = {
+                glyph_pos.X, glyph_pos.Y,
+                glyph_pos.X + glyph.size.X*scale, glyph_pos.Y + glyph.size.Y*scale
+            };
+
+            r_rect_tex_ex(ctx, glyph_rect, 0xFFFFFFFF, 0.0f, 0.0f, glyph.uv, font->texture);
+            pos.X += glyph.advance*scale;
+        }
+    } else {
+        er_push(str8("font not initialized"));
     }
 }
 
