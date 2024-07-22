@@ -126,9 +126,11 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
             os_wait(FRAME_MS - frame_time);
         }
     }
-    
+
     gfx_window_destroy(window);
+    font_end(&font);
     r_backend_end();
+    
     
     return 0;
 }
