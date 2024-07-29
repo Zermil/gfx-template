@@ -89,7 +89,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         
         R_List list = {0};
         R_Ctx ctx = r_make_context(frame_arena, &list);
-        r_frame_begin(window);
+        r_frame_begin(window, 0x121212FF);
 
         f32 w, h;
         gfx_window_get_rect(window, &w, &h);

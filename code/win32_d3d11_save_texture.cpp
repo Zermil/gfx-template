@@ -33,7 +33,7 @@ internal void render(GFX_Window *window, void *data)
     R_List list = {0};
     R_Ctx ctx = r_make_context(frame_arena, &list);
 
-    r_frame_begin(window);
+    r_frame_begin(window, 0x121212FF);
     
     f32 width, height;
     gfx_window_get_rect(window, &width, &height);
@@ -63,7 +63,7 @@ internal void render(GFX_Window *window, void *data)
         gfx_window_set_destroy_func(window1, r_window_unequip);
         r_window_equip(window1);
 
-        r_frame_begin(window1);
+        r_frame_begin(window1, 0x121212FF);
         r_rect(&ctx1, rect, 0xFF0000FF, 10.0f);
 
         r_flush_batches(window1, &list1);
@@ -115,7 +115,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
 #endif
         
         f64 frame_start = os_ticks_now();
-        // f64 delta = frame_start - frame_prev;
         frame_prev = frame_start;
         
         GFX_Event_List event_list = gfx_process_input(frame_arena);

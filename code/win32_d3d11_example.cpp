@@ -29,7 +29,7 @@ internal void render(GFX_Window *window, void *data)
     R_List list = {0};
     R_Ctx ctx = r_make_context(frame_arena, &list);
     
-    r_frame_begin(window);
+    r_frame_begin(window, 0x121212FF);
     
     f32 width = 0.0f;
     f32 height = 0.0f;
