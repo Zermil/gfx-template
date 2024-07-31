@@ -95,8 +95,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     Arena *frame_arena = arena_make();
     
     GFX_Window *window = gfx_window_create(str8("A window"), WIDTH, HEIGHT);
+    
     gfx_window_set_resizable(window, 1);
-    gfx_window_set_visible(window, 1);
+    gfx_window_set_visible(window, 1);    
     gfx_window_set_render_func(window, render, frame_arena);
     gfx_window_set_destroy_func(window, r_window_unequip);
     
@@ -104,7 +105,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     b32 should_quit = 0;
     f64 frame_prev = os_ticks_now();
-    
+
     while (!should_quit) {
         OPTICK_FRAME("Main");
         

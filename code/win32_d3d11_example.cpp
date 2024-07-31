@@ -107,7 +107,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
     
     b32 should_quit = 0;
     f64 frame_prev = os_ticks_now();
-    
+     
     while (!should_quit) {
         OPTICK_FRAME("Main");
         

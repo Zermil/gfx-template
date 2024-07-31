@@ -86,5 +86,6 @@ internal void gfx_mouse_set_cursor(GFX_Window *window, GFX_Cursor_Kind kind);
 internal void gfx_mouse_set_capture(GFX_Window *window, b32 capture);
 
 internal void gfx_error_display(GFX_Window *window, String8 text, String8 caption);
+internal b32 gfx_open_save_dialog(GFX_Window *window, String8 *out);
 
 #endif // GFX_H
