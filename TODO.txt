@@ -8,3 +8,7 @@ Rendering:
   [~] Lines and rotated quads
   [ ] 'Scissors' regions
   [ ] Different 'cameras' depending on rendering ctx
+
+String:
+ [ ] String16 for 'better' windows API interop
+ [ ] UTF8 and UTF16 decode/encode
