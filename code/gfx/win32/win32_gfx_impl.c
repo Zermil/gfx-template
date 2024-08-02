@@ -583,10 +583,12 @@ internal b32 gfx_open_save_dialog(GFX_Window *window, String8 *out)
             Win32_Window *w = win32_window_from_opaque(window);
             
             OPENFILENAME ofn = {0};
+            MemoryZero(&ofn, sizeof(OPENFILENAME));
+            MemoryZero(out->data, out->size);
             
-            ofn.lStructSize = sizeof(ofn);
+            ofn.lStructSize = sizeof(OPENFILENAME);
             ofn.hwndOwner = w->handle;
-            ofn.lpstrFilter = "Image files (*.jpg)\0*.jpg\0";
+            ofn.lpstrFilter = "Image file (*.jpg;*jpeg;*jpe;*jfif)\0*.jpg;*.jpeg;*.jpe;*.jfif\0\0";
             ofn.lpstrTitle = "Select a file";
             ofn.lpstrFile = (LPSTR) out->data;
             ofn.nMaxFile = (DWORD) out->size;
