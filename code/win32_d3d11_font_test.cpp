@@ -102,7 +102,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
             (h - font.font_size)*.5f
         };
 
-        font_r_text_ex(&ctx, &font, text_pos, prompt, scale);
+        font_r_text_ex(&ctx, &font, text_pos, prompt, 0xFFFFFFFF, scale);
         r_rect_tex(&ctx, { 0.0f, 0.0f, font.texture_size.X, font.texture_size.Y }, 0.0f, font.texture);
 
         r_flush_batches(window, &list);
