@@ -2,7 +2,7 @@
 #define R_BACKEND_D3D11 1
 
 #define FPS 60
-#define FRAME_MS (1000.0/FPS)
+#define FRAME_MS (1000.0f/FPS)
 
 #define WIDTH 1280
 #define HEIGHT 720

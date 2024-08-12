@@ -39,10 +39,7 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             Win32_Window *win32_window = win32_window_from_opaque(gfx_window);
             
             if (win32_window->render) {
-                PAINTSTRUCT ps = {0};
-                BeginPaint(handle, &ps);
                 win32_window->render(gfx_window, win32_window->render_data);
-                EndPaint(handle, &ps);
             }
         } break;
         
