@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef BASE_TYPES_H
+#define BASE_TYPES_H
 
 #include <stdint.h>
 #include <limits.h>
@@ -29,4 +29,4 @@ typedef struct {
     f32 y1;
 } RectF32;
 
-#endif // TYPES_H
+#endif // BASE_TYPES_H
