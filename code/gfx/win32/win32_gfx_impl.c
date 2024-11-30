@@ -217,13 +217,6 @@ internal GFX_Window *gfx_window_create(String8 title, s32 width, s32 height)
         }
     }
     
-    // @Note: Cleanup
-    if (error) {
-        if (handle) {
-            DestroyWindow(handle);
-        }
-    }
-    
     GFX_Window *result = 0;
     if (!error) {
         FREE_LIST_ALLOC(win32_window_free);

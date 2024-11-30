@@ -17,8 +17,6 @@
 #include <HandmadeMath.h>
 #include <optick.h>
 
-// @Note: For some reason these _have to_ be declared at top level
-// otherwise we get C2208 compile error...
 #define FONT_USE_FREETYPE 1
 #include <ft2build.h>
 #include <freetype/freetype.h>

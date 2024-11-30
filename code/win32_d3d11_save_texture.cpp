@@ -29,7 +29,7 @@ b32 capture_frame = 0;
 internal void render(GFX_Window *window, void *data)
 {
     Arena *frame_arena = (Arena *) data;
-
+    
     R_List list = {0};
     R_Ctx ctx = r_make_context(frame_arena, &list);
 

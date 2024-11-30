@@ -1,3 +1,6 @@
+GFX:
+  [ ] Feels like gfx_process_input() is not per-window based, should investigate
+
 Font rendering:
   [X] Rectangle packing
   [ ] Rendering diacritics -- Norwegian, Russian etc.
