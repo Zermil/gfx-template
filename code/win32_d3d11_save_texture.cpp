@@ -53,25 +53,22 @@ internal void render(GFX_Window *window, void *data)
     r_frame_end(window);
 
     if (capture_frame) {
-        R_List list1 = {0};
-        R_Ctx ctx1 = r_make_context(frame_arena, &list1);
-
-        s32 w = (s32) width;
-        s32 h = (s32) height;
+        R_List list_screenshot = {0};
+        R_Ctx ctx_screenshot = r_make_context(frame_arena, &list_screenshot);
         
-        GFX_Window *window1 = gfx_window_create(str8("A window"), w, h);
-        gfx_window_set_destroy_func(window1, r_window_unequip);
-        r_window_equip(window1);
+        GFX_Window *window_stub = gfx_window_create(str8("Stub"), (s32) width, (s32) height);
+        gfx_window_set_destroy_func(window_stub, r_window_unequip);
+        r_window_equip(window_stub);
 
-        r_frame_begin(window1, 0x121212FF);
-        r_rect(&ctx1, rect, 0xFF0000FF, 10.0f);
+        r_frame_begin(window_stub, 0x121212FF);
+        r_rect(&ctx_screenshot, rect, 0xFF0000FF, 10.0f);
 
-        r_flush_batches(window1, &list1);
-        u8 *pixels = r_frame_end_get_backbuffer(window1, frame_arena);
+        r_flush_batches(window_stub, &list_screenshot);
+        u8 *pixels = r_frame_end_get_backbuffer(window_stub, frame_arena);
 
-        stbi_write_jpg("ss.jpg", w, h, 4, pixels, 100);
+        stbi_write_jpg("ss.jpg", (s32) width, (s32) height, 4, pixels, 100);
         
-        gfx_window_destroy(window1);
+        gfx_window_destroy(window_stub);
         capture_frame = 0;
     }
     
@@ -91,7 +88,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         r_backend_init();
     }
     
-    Arena *arena = arena_make();
     Arena *frame_arena = arena_make();
     
     GFX_Window *window = gfx_window_create(str8("A window"), WIDTH, HEIGHT);
