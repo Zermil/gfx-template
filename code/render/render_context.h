@@ -21,7 +21,7 @@
 #  error d3d11 backend selected
 # endif
 # if R_BACKEND_OPENGL
-#  error d3d11 backend selected
+#  error opengl backend selected
 # endif
 #endif
 
