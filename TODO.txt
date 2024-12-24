@@ -1,18 +1,20 @@
 GFX:
-  [ ] Feels like gfx_process_input() is not per-window based, should investigate
+  [ ] global win32_event_list should be a hash-table-like-thing?
 
 Font rendering:
   [X] Rectangle packing
+  [ ] When you specify where to render text (x; y) it is relative to bottom-left of the entire quad-batch instead of the expected top-left
   [ ] Rendering diacritics -- Norwegian, Russian etc.
   [ ] Make glyphs look better when scaled up/down
   [ ] (optional/maybe) Eventually move on from FreeType and roll something custom? (or use DWrite but it's a pain to use)
   [ ] Unifying font and render to be the same module(?)
-  [ ] Font context when we have more than one font backend
+  [ ] Font context when we have more than one font backend  
 
 Rendering:
   [~] Lines and rotated quads
   [ ] 'Scissors' regions
   [ ] Different 'cameras' depending on rendering ctx
+  [ ] Omit texture so we can render regular quads AND texture in the same batch
 
 String:
   [ ] String16 for 'better' windows API interop

@@ -2,7 +2,7 @@
 #define RENDER_HELPER_H
 
 #ifndef R_MAX_QUAD_CHUNK
-# define R_MAX_QUAD_CHUNK 4096
+# define R_MAX_QUAD_CHUNK KB(4)
 #endif
 
 typedef struct R_Quad_Batch {
