@@ -136,7 +136,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, 
         frame_end:
         {
 #ifndef NDEBUG
-            Arena_Temp temp = arena_temp_begin(arena);
+            Arena_Temp temp = arena_temp_begin(frame_arena);
             String8 error = er_accum_end(temp.arena);
             if (error.size != 0) {
                 gfx_error_display(window, error, str8("Error"));

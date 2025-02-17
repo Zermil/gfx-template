@@ -52,6 +52,9 @@ extern "C" void __asan_unpoison_memory_region(void *, size_t);
         (b) = temp;                             \
     } while (0);
 
+#define FREE_LIST_ALLOC(item) ((item) == 0 ? 0 : ((item) = (item)->next))
+#define FREE_LIST_RELEASE(ffree, item) ((item)->next = (ffree), (ffree) = (item))
+
 #define SLLQueuePush_N(first, last, item, next) \
     do {                                        \
         if ((first) == 0) {                     \

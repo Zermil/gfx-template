@@ -127,19 +127,16 @@ internal void arena_pop_to(Arena *arena, usize pos)
     Arena *current = arena->current;
     while (current->base_pos >= pos_clamp) {
         Arena *prev = current->prev;
+        ASAN_MEM_POISON(current, current->chunk_cap);
         os_memory_release(current);
         current = prev;
     }
     
     Assert(current);
-    
     arena->current = current;
-    usize rel_chunk_pos = pos_clamp - current->base_pos;
     
-    {
-        // @Note: This is very serious, if this assert hits, this means that our 'rel_chunk_pos' resides in uncommited/poisoned memory.
-        Assert(rel_chunk_pos <= current->chunk_pos);
-    }
+    usize rel_chunk_pos = MAX(pos_clamp - current->base_pos, ARENA_HEADER_SIZE);
+    Assert(rel_chunk_pos <= current->chunk_pos);
     
     ASAN_MEM_POISON((u8 *) current + rel_chunk_pos, current->chunk_pos - rel_chunk_pos);
     current->chunk_pos = rel_chunk_pos;
