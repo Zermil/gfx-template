@@ -79,7 +79,7 @@ internal LRESULT CALLBACK gfx_win32_window_proc(HWND handle, UINT msg, WPARAM wP
             drop_files.files = arena_push_array(win32_arena, GFX_Drop_Files_Node, drop_files.count);
             
             for (u32 i = 0; i < drop_files.count; ++i) {
-                u32 size = DragQueryFile(hdrop, i, 0, 0) + 1;
+                u32 size = DragQueryFile(hdrop, i, 0, 0);
                 drop_files.files[i].name.size = (usize) size;
                 drop_files.files[i].name.data = arena_push_array(win32_arena, u8, (usize) size);
                 DragQueryFile(hdrop, i, (LPSTR) drop_files.files[i].name.data, (UINT) size);

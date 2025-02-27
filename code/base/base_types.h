@@ -20,7 +20,7 @@ typedef int32_t b32;
 typedef float f32;
 typedef double f64;
 
-typedef size_t usize;
+typedef u64 usize;
 
 typedef struct {
     f32 x0;
