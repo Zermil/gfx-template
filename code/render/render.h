@@ -33,6 +33,7 @@ internal void r_frame_begin(GFX_Window *window, u32 clear_color);
 internal void r_frame_end(GFX_Window *window);
 internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize total_quad_count, R_Texture2D *texture);
 
+// @ToDo: This is kinda useless and very problem-specific
 internal u8 *r_end_frame_get_backbuffer(GFX_Window *window, Arena *arena);
 
 // @ToDo: We're only allowing for textures in RGBA format for now

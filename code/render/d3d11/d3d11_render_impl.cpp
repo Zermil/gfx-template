@@ -235,7 +235,7 @@ internal b32 r_backend_init(void)
         d3d11_state.device->CreateSamplerState(&desc, &d3d11_state.sampler_state);
     }
     
-    // @Note: It's better not to use 'r_create_texture' here because 
+    // @Note: It's better not to use 'r_texture_create' here because 
     // we are treating this entire thing slightly differently and want more control
     if (!error) {
         D3D11_TEXTURE2D_DESC tex_desc = {0};
