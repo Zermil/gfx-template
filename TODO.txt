@@ -13,8 +13,9 @@ Font rendering:
 Rendering:
   [~] Lines and rotated quads
   [ ] 'Scissors' regions
-  [ ] Different 'cameras' depending on rendering ctx
+  [ ] Different 'cameras' depending on rendering ctx (inspired by raylib)
   [ ] Omit texture so we can render regular quads AND texture in the same batch
+  [ ] Different passes for rendering font/quads/geo?
 
 String:
   [ ] String16 for 'better' windows API interop
