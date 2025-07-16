@@ -5,27 +5,33 @@
 # define R_MAX_QUAD_CHUNK KB(4)
 #endif
 
-typedef struct R_Quad_Batch {
-    struct R_Quad_Batch *next;
-    
-    R_Quad_Node *first;
-    R_Quad_Node *last;
-    usize count;
-    usize total_quad_count;
-    
-    R_Texture2D *texture;
-} R_Quad_Batch;
+typedef struct R_Quad_Batch R_Quad_Batch;
+struct R_Quad_Batch
+{
+  R_Quad_Batch *next;
 
-typedef struct {
-    R_Quad_Batch *first;
-    R_Quad_Batch *last;
-    usize count;
-} R_List;
+  R_Quad_Node *first;
+  R_Quad_Node *last;
+  u64 count;
+  u64 total_quad_count;
 
-typedef struct {
-    Arena *arena;
-    R_List *list;
-} R_Ctx;
+  R_Texture2D *texture;
+};
+
+typedef struct R_List R_List;
+struct R_List
+{
+  R_Quad_Batch *first;
+  R_Quad_Batch *last;
+  u64 count;
+};
+
+typedef struct R_Ctx R_Ctx;
+struct R_Ctx
+{
+  Arena *arena;
+  R_List *list;
+};
 
 // @Note: Actual internal helpers
 internal R_Ctx r_make_context(Arena *arena, R_List *list);

@@ -2,10 +2,10 @@
 #define BASE_MACROS_H
 
 #ifndef NDEBUG
-# define Assert(expr)                               \
-    do {                                            \
-        if (!(expr)) (*((volatile int *)0) = 0);    \
-    } while(0)
+# define Assert(expr)                           \
+  do {                                          \
+    if (!(expr)) (*((volatile int *)0) = 0);    \
+  } while(0)
 #else
 # define Assert(expr) ((void)(expr))
 #endif
@@ -46,49 +46,49 @@ extern "C" void __asan_unpoison_memory_region(void *, size_t);
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 #define AS_BOOL(x) ((x) != 0)
 #define SWAP(a, b, t)                           \
-    do {                                        \
-        t temp = (a);                           \
-        (a) = (b);                              \
-        (b) = temp;                             \
-    } while (0);
+  do {                                          \
+    t temp = (a);                               \
+    (a) = (b);                                  \
+    (b) = temp;                                 \
+  } while (0);
 
 #define FREE_LIST_ALLOC(item) ((item) == 0 ? 0 : ((item) = (item)->next))
 #define FREE_LIST_RELEASE(ffree, item) ((item)->next = (ffree), (ffree) = (item))
 
 #define SLLQueuePush_N(first, last, item, next) \
-    do {                                        \
-        if ((first) == 0) {                     \
-            (first) = (last) = (item);          \
-            (item)->next = 0;                   \
-        } else {                                \
-            (last)->next = (item);              \
-            (last) = (item);                    \
-            (item)->next = 0;                   \
-        }                                       \
-    } while(0)
+  do {                                          \
+    if ((first) == 0) {                         \
+      (first) = (last) = (item);                \
+      (item)->next = 0;                         \
+    } else {                                    \
+      (last)->next = (item);                    \
+      (last) = (item);                          \
+      (item)->next = 0;                         \
+    }                                           \
+  } while(0)
 
 #define SLLQueuePop_N(first, last, next)        \
-    do {                                        \
-        if ((first) == (last)) {                \
-            (first) = (last) = 0;               \
-        } else {                                \
-            (first) = (first)->next;            \
-        }                                       \
-    } while(0)
+  do {                                          \
+    if ((first) == (last)) {                    \
+      (first) = (last) = 0;                     \
+    } else {                                    \
+      (first) = (first)->next;                  \
+    }                                           \
+  } while(0)
 
 #define SLLQueuePush(first, last, item) SLLQueuePush_N((first), (last), (item), next)
 #define SLLQueuePop(first, last) SLLQueuePop_N((first), (last), next)
 
 #define SLLStackPush_N(first, item, next)       \
-    do {                                        \
-        (item)->next = (first);                 \
-        (first) = (item);                       \
-    } while(0)
+  do {                                          \
+    (item)->next = (first);                     \
+    (first) = (item);                           \
+  } while(0)
 
 #define SLLStackPop_N(first, next)              \
-    do {                                        \
-        (first) = (first)->next;                \
-    } while(0)
+  do {                                          \
+    (first) = (first)->next;                    \
+  } while(0)
 
 #define SLLStackPush(first, item) SLLStackPush_N(first, item, next)
 #define SLLStackPop(first) SLLStackPop_N(first, next)

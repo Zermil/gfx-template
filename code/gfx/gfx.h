@@ -11,52 +11,64 @@ typedef void GFX_Window;
 typedef void gfx_render_func(GFX_Window *window, void *data);
 typedef void gfx_destroy_func(GFX_Window *window);
 
-typedef enum {
-    GFX_EVENT_NONE = 0,
-    GFX_EVENT_QUIT,
-    GFX_EVENT_MOUSE,
-    GFX_EVENT_KEYDOWN,
-    GFX_EVENT_LBUTTONUP,
-    GFX_EVENT_MBUTTONUP,
-    GFX_EVENT_LBUTTONDOWN,
-    GFX_EVENT_MBUTTONDOWN,
-    GFX_EVENT_MOUSEMOVE,
-    GFX_EVENT_MOUSEWHEEL,
-    GFX_EVENT_DROPFILES,
-} GFX_Event_Kind;
+typedef u32 GFX_Event_Kind;
+enum GFX_Event_Kind_Enum
+{
+  GFX_EVENT_NONE = 0,
+  GFX_EVENT_QUIT,
+  GFX_EVENT_MOUSE,
+  GFX_EVENT_KEYDOWN,
+  GFX_EVENT_LBUTTONUP,
+  GFX_EVENT_MBUTTONUP,
+  GFX_EVENT_LBUTTONDOWN,
+  GFX_EVENT_MBUTTONDOWN,
+  GFX_EVENT_MOUSEMOVE,
+  GFX_EVENT_MOUSEWHEEL,
+  GFX_EVENT_DROPFILES,
+};
 
-typedef enum {
-    GFX_CURSOR_ARROW = 0,
-    GFX_CURSOR_HAND,
-    GFX_CURSOR_HSIZE,
-} GFX_Cursor_Kind;
+typedef u32 GFX_Cursor_Kind;
+enum GFX_Cursor_Kind_Enum
+{
+  GFX_CURSOR_ARROW = 0,
+  GFX_CURSOR_HAND,
+  GFX_CURSOR_HSIZE,
+};
 
-typedef struct {
-    String8 name;
-} GFX_Drop_Files_Node;
+typedef struct GFX_Drop_Files_Node GFX_Drop_Files_Node;
+struct GFX_Drop_Files_Node
+{
+  String8 name;
+};
 
-typedef struct {
-    GFX_Drop_Files_Node *files;
-    usize count;
-} GFX_Drop_Files;
+typedef struct GFX_Drop_Files GFX_Drop_Files;
+struct GFX_Drop_Files
+{
+  GFX_Drop_Files_Node *files;
+  u64 count;
+};
 
-typedef struct GFX_Event {
-    struct GFX_Event *next;
-    GFX_Window *window;
-    
-    GFX_Event_Kind kind;
-    
-    u64 character;
-    GFX_Drop_Files drop_files;
-    HMM_Vec2 mouse;
-    f32 mouse_wheel;
-} GFX_Event;
+typedef struct GFX_Event GFX_Event;
+struct GFX_Event
+{
+  GFX_Event *next;
+  GFX_Window *window;
 
-typedef struct {
-    GFX_Event *first;
-    GFX_Event *last;
-    usize count;
-} GFX_Event_List;
+  GFX_Event_Kind kind;
+
+  u64 character;
+  GFX_Drop_Files drop_files;
+  HMM_Vec2 mouse;
+  f32 mouse_wheel;
+};
+
+typedef struct GFX_Event_List GFX_Event_List;
+struct GFX_Event_List
+{
+  GFX_Event *first;
+  GFX_Event *last;
+  u64 count;
+};
 
 internal b32 gfx_init(void);
 internal b32 gfx_is_init(void);

@@ -4,22 +4,26 @@
 #define FONT_INIT_ATLAS_SIZE 128.0f
 #define FONT_GLYPH_COUNT 128
 
-typedef struct {
-    HMM_Vec2 size;
-    HMM_Vec2 origin;
-    HMM_Vec2 offset;
-    RectF32 uv;
-    f32 advance;
-} Font_Glyph_Info;
+typedef struct Font_Glyph_Info Font_Glyph_Info;
+struct Font_Glyph_Info
+{
+  HMM_Vec2 size;
+  HMM_Vec2 origin;
+  HMM_Vec2 offset;
+  RectF32 uv;
+  f32 advance;
+};
 
-typedef struct {
-    R_Texture2D *texture;
-    HMM_Vec2 texture_size;
-    u32 font_size;
+typedef struct Font Font;
+struct Font
+{
+  R_Texture2D *texture;
+  HMM_Vec2 texture_size;
+  u32 font_size;
 
-    // @ToDo: Make this a variable sized array?
-    Font_Glyph_Info glyphs[FONT_GLYPH_COUNT];
-} Font;
+  // @ToDo: Make this a variable sized array?
+  Font_Glyph_Info glyphs[FONT_GLYPH_COUNT];
+};
 
 internal b32 font_is_init(void);
 internal void font_end(Font *font);

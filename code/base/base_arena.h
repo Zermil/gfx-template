@@ -16,35 +16,39 @@
 # define ARENA_DEFAULT_COMMIT KB(64)
 #endif
 
-typedef struct Arena {
-    struct Arena *current;
-    struct Arena *prev;
-    
-    usize chunk_cap;
-    usize chunk_pos;
-    
-    usize commit_pos;
-    
-    b32 growing; // @Note: We want to allow arenas that are static i.e. not 'growing'
-    usize align;
-    usize base_pos; // @Note: Helper for when we 'pop' arenas
-} Arena;
+typedef struct Arena Arena;
+struct Arena
+{
+  Arena *current;
+  Arena *prev;
 
-typedef struct {
-    Arena *arena;
-    usize pos;
-} Arena_Temp;
+  u64 chunk_cap;
+  u64 chunk_pos;
 
-internal Arena *arena_make_sized(usize size, b32 growing);
+  u64 commit_pos;
+
+  b32 growing; // @Note: We want to allow arenas that are static i.e. not 'growing'
+  u64 align;
+  u64 base_pos; // @Note: Helper for when we 'pop' arenas
+};
+
+typedef struct Arena_Temp Arena_Temp;
+struct Arena_Temp
+{
+  Arena *arena;
+  u64 pos;
+};
+
+internal Arena *arena_make_sized(u64 size, b32 growing);
 internal Arena *arena_make(void);
 internal void arena_release(Arena *arena);
 
-internal void *arena_push_no_zero(Arena *arena, usize size);
-internal void *arena_push(Arena *arena, usize size);
-internal void arena_pop_to(Arena *arena, usize pos);
+internal void *arena_push_no_zero(Arena *arena, u64 size);
+internal void *arena_push(Arena *arena, u64 size);
+internal void arena_pop_to(Arena *arena, u64 pos);
 
-internal usize arena_pos(Arena *arena);
-internal void arena_put_back(Arena *arena, usize size);
+internal u64 arena_pos(Arena *arena);
+internal void arena_put_back(Arena *arena, u64 size);
 internal void arena_clear(Arena *arena);
 
 internal Arena_Temp arena_temp_begin(Arena *arena);

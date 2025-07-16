@@ -20,13 +20,11 @@ typedef int32_t b32;
 typedef float f32;
 typedef double f64;
 
-typedef u64 usize;
-
 typedef struct {
-    f32 x0;
-    f32 y0;
-    f32 x1;
-    f32 y1;
+  f32 x0;
+  f32 y0;
+  f32 x1;
+  f32 y1;
 } RectF32;
 
 #endif // BASE_TYPES_H

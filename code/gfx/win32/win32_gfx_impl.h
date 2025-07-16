@@ -9,21 +9,23 @@
 # define GFX_WIN32_MIN_HEIGHT 600
 #endif
 
-typedef struct Win32_Window {
-    struct Win32_Window *next;
-    
-    HWND handle;
-    b32 resizable;
-    b32 drop_files;
-    HCURSOR cursor;
-    
-    b32 resizing;
-    
-    gfx_render_func *render;
-    void *render_data;
-    
-    gfx_destroy_func *destroy;
-} Win32_Window;
+typedef struct Win32_Window Win32_Window;
+struct Win32_Window
+{
+  Win32_Window *next;
+
+  HWND handle;
+  b32 resizable;
+  b32 drop_files;
+  HCURSOR cursor;
+
+  b32 resizing;
+
+  gfx_render_func *render;
+  void *render_data;
+
+  gfx_destroy_func *destroy;
+};
 
 #define GFX_WIN32_WINDOW_CLASS_NAME "gfx_win32_window_class"
 

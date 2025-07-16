@@ -4,25 +4,30 @@
 typedef void R_Texture2D;
 
 // @Note: Used for templates
-typedef struct {
-    HMM_Vec2 pos;
-} R_Vertex;
+typedef struct R_Vertex R_Vertex;
+struct R_Vertex
+{
+  HMM_Vec2 pos;
+};
 
 // @Note: Used for instancing and batching
-typedef struct {
-    RectF32 pos;
-    RectF32 uv;
-    u32 col;
-    f32 radius;
-    f32 theta;
-} R_Quad;
+typedef struct R_Quad R_Quad;
+struct R_Quad
+{
+  RectF32 pos;
+  RectF32 uv;
+  u32 col;
+  f32 radius;
+  f32 theta;
+};
 
-typedef struct R_Quad_Node {
-    struct R_Quad_Node *next;
-    
-    R_Quad *quads;
-    usize count;
-} R_Quad_Node;
+typedef struct R_Quad_Node R_Quad_Node;
+struct R_Quad_Node
+{
+  R_Quad_Node *next;
+  R_Quad *quads;
+  u64 count;
+};
 
 internal b32 r_is_init(void);
 internal b32 r_backend_init(void);
@@ -31,7 +36,7 @@ internal b32 r_window_equip(GFX_Window *window);
 internal void r_window_unequip(GFX_Window *window);
 internal void r_frame_begin(GFX_Window *window, u32 clear_color);
 internal void r_frame_end(GFX_Window *window);
-internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, usize total_quad_count, R_Texture2D *texture);
+internal b32 r_submit_quads(GFX_Window *window, R_Quad_Node *draw_data, u64 total_quad_count, R_Texture2D *texture);
 
 // @ToDo: This is kinda useless and very problem-specific
 internal u8 *r_end_frame_get_backbuffer(GFX_Window *window, Arena *arena);

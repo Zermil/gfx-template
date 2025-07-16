@@ -21,114 +21,114 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
-#include "./base/base_inc.h"
-#include "./os/os_inc.h"
-#include "./gfx/gfx_inc.h"
-#include "./render/render_inc.h"
-#include "./font/font_inc.h" // @Note: Include font after render, maybe there's a way to de-couple those...
+#include "base/base_inc.h"
+#include "os/os_inc.h"
+#include "gfx/gfx_inc.h"
+#include "render/render_inc.h"
+#include "font/font_inc.h" // @Note: Include font after render, maybe there's a way to de-couple those...
 
-#include "./base/base_inc.c"
-#include "./os/os_inc.c"
-#include "./gfx/gfx_inc.c"
-#include "./render/render_inc.c"
-#include "./font/font_inc.c"
+#include "base/base_inc.c"
+#include "os/os_inc.c"
+#include "gfx/gfx_inc.c"
+#include "render/render_inc.c"
+#include "font/font_inc.c"
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int cmd_show)
 {
-    UNUSED(instance);
-    UNUSED(prev_instance);
-    UNUSED(cmd_line);
-    UNUSED(cmd_show);
-    
-    // @Note: Init modules
+  UNUSED(instance);
+  UNUSED(prev_instance);
+  UNUSED(cmd_line);
+  UNUSED(cmd_show);
+
+  // @Note: Init modules
+  {
+    os_main_init();
+    gfx_init();
+    r_backend_init();
+  }
+
+  Arena *arena = arena_make();
+  Arena *frame_arena = arena_make();
+
+  GFX_Window *window = gfx_window_create(str8("A window"), WIDTH, HEIGHT);
+  gfx_window_set_resizable(window, 1);
+  gfx_window_set_visible(window, 1);
+  gfx_window_set_destroy_func(window, r_window_unequip);
+
+  r_window_equip(window);
+
+  Font font = font_init(arena, str8("./Inconsolata-Regular.ttf"), 32, 96);
+
+  b32 should_quit = 0;
+  f64 frame_prev = os_ticks_now();
+
+  while (!should_quit) {
+    OPTICK_FRAME("Main");
+
+    arena_clear(frame_arena);
+
+#ifndef NDEBUG
+    er_accum_start();
+#endif
+
+    f64 frame_start = os_ticks_now();
+    // f64 delta = frame_start - frame_prev;
+    frame_prev = frame_start;
+
+    GFX_Event_List event_list = gfx_process_input(frame_arena);
+    for (GFX_Event *event = event_list.first; event != 0; event = event->next) {
+      gfx_events_eat(&event_list);
+
+      if (event->kind == GFX_EVENT_QUIT) {
+        should_quit = 1;
+        goto frame_end;
+      }
+    }
+
+    R_List list = {0};
+    R_Ctx ctx = r_make_context(frame_arena, &list);
+    r_frame_begin(window, 0x121212FF);
+
+    f32 w, h;
+    gfx_window_get_rect(window, &w, &h);
+
+    f32 scale = 1.0f;
+    String8 prompt = str8("Nothing more to say!&");
+    f32 text_w = font_text_width_ex(&font, prompt, scale);
+    HMM_Vec2 text_pos = {
+      (w - text_w)*.5f,
+      (h - font.font_size)*.5f
+    };
+
+    font_r_text_ex(&ctx, &font, text_pos, prompt, 0xFFFFFFFF, scale);
+    r_rect_tex(&ctx, { 0.0f, 0.0f, font.texture_size.X, font.texture_size.Y }, 0.0f, font.texture);
+
+    r_flush_batches(window, &list);
+    r_frame_end(window);
+
+  frame_end:
     {
-        os_main_init();
-        gfx_init();
-        r_backend_init();
-    }
-    
-    Arena *arena = arena_make();
-    Arena *frame_arena = arena_make();
-    
-    GFX_Window *window = gfx_window_create(str8("A window"), WIDTH, HEIGHT);
-    gfx_window_set_resizable(window, 1);
-    gfx_window_set_visible(window, 1);
-    gfx_window_set_destroy_func(window, r_window_unequip);
-    
-    r_window_equip(window);
-    
-    Font font = font_init(arena, str8("./Inconsolata-Regular.ttf"), 32, 96);
-    
-    b32 should_quit = 0;
-    f64 frame_prev = os_ticks_now();
-    
-    while (!should_quit) {
-        OPTICK_FRAME("Main");
-        
-        arena_clear(frame_arena);
-        
 #ifndef NDEBUG
-        er_accum_start();
+      Arena_Temp temp = arena_temp_begin(frame_arena);
+      String8 error = er_accum_end(temp.arena);
+      if (error.size != 0) {
+        gfx_error_display(window, error, str8("Error"));
+        os_exit_process(1);
+      }
+      arena_temp_end(&temp);
 #endif
-        
-        f64 frame_start = os_ticks_now();
-        // f64 delta = frame_start - frame_prev;
-        frame_prev = frame_start;
-        
-        GFX_Event_List event_list = gfx_process_input(frame_arena);
-        for (GFX_Event *event = event_list.first; event != 0; event = event->next) {
-            gfx_events_eat(&event_list);
-            
-            if (event->kind == GFX_EVENT_QUIT) {
-                should_quit = 1;
-                goto frame_end;
-            }
-        }
-        
-        R_List list = {0};
-        R_Ctx ctx = r_make_context(frame_arena, &list);
-        r_frame_begin(window, 0x121212FF);
-
-        f32 w, h;
-        gfx_window_get_rect(window, &w, &h);
-
-        f32 scale = 1.0f;
-        String8 prompt = str8("Nothing more to say!&");
-        f32 text_w = font_text_width_ex(&font, prompt, scale);
-        HMM_Vec2 text_pos = {
-            (w - text_w)*.5f,
-            (h - font.font_size)*.5f
-        };
-
-        font_r_text_ex(&ctx, &font, text_pos, prompt, 0xFFFFFFFF, scale);
-        r_rect_tex(&ctx, { 0.0f, 0.0f, font.texture_size.X, font.texture_size.Y }, 0.0f, font.texture);
-
-        r_flush_batches(window, &list);
-        r_frame_end(window);
-        
-    frame_end:
-        {
-#ifndef NDEBUG
-            Arena_Temp temp = arena_temp_begin(frame_arena);
-            String8 error = er_accum_end(temp.arena);
-            if (error.size != 0) {
-                gfx_error_display(window, error, str8("Error"));
-                os_exit_process(1);
-            }
-            arena_temp_end(&temp);
-#endif
-        }
-        
-        f64 frame_time = os_ticks_now() - frame_start;
-        if (frame_time < FRAME_MS) {
-            os_wait(FRAME_MS - frame_time);
-        }
     }
 
-    gfx_window_destroy(window);
-    font_end(&font);
-    r_backend_end();
-    
-    
-    return 0;
+    f64 frame_time = os_ticks_now() - frame_start;
+    if (frame_time < FRAME_MS) {
+      os_wait(FRAME_MS - frame_time);
+    }
+  }
+
+  gfx_window_destroy(window);
+  font_end(&font);
+  r_backend_end();
+
+
+  return 0;
 }
